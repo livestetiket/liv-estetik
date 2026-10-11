@@ -53,7 +53,13 @@ const env = {
 
   adminEmail,
   adminName: process.env.ADMIN_NAME || "Admin",
-  adminPassword,
+    adminPassword,
+
+  emailProvider: process.env.EMAIL_PROVIDER || "console",
+  smtpHost: process.env.SMTP_HOST || "",
+  smtpPort: Number(process.env.SMTP_PORT) || 587,
+  smtpUser: process.env.SMTP_USER || "",
+  smtpPass: process.env.SMTP_PASS || "",
 };
 
 module.exports = env;
