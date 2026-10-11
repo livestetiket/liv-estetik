@@ -7,7 +7,7 @@ async function connectDB() {
   try {
     await mongoose.connect(env.mongoUri);
     // eslint-disable-next-line no-console
-    console.log(`[db] Connected to MongoDB at ${env.mongoUri}`);
+    console.log(`[db] Connected to MongoDB (${mongoose.connection.name})`);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error("[db] MongoDB connection failed:", err.message);
