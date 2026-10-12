@@ -1,51 +1,34 @@
-import { useEffect, useRef } from "react";
-import { motion, useInView } from "framer-motion";
-
-export function useGlobalStyles(css) {
-    useEffect(() => {
-        const id = "le-global-styles";
-        if (document.getElementById(id)) return;
-        const el = document.createElement("style");
-        el.id = id;
-        el.textContent = css;
-        document.head.appendChild(el);
-        return () => el.remove();
-    }, [css]);
+export function FadeUp({ children, delay = 0, className = "" }) {
+    return (
+        <div className={`reveal ${className}`} data-reveal style={{ "--reveal-delay": `${delay * 1000}ms` }}>
+            {children}
+        </div>
+    );
 }
 
-export function FadeUp({ children, delay = 0, className = "" }) {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true, margin: "-60px" });
+export function SectionHeading({ eyebrow, title, children, dark = false }) {
     return (
-        <motion.div
-            ref={ref}
-            className={className}
-            initial={{ opacity: 0, y: 24 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.65, delay, ease: "easeOut" }}
-        >
-            {children}
-        </motion.div>
+        <header className={`section-heading${dark ? " section-heading-dark" : ""}`} data-reveal>
+            <p className="eyebrow">{eyebrow}</p>
+            <h2 className="display-heading">{title}</h2>
+            {children ? <p className="section-intro">{children}</p> : null}
+        </header>
     );
 }
 
 export function ServiceCard({ service, index }) {
-    const isComingSoon = Boolean(service.isComingSoon || service.comingSoon || (!service.active && service.visible));
+    const comingSoon = Boolean(service.isComingSoon || service.comingSoon || (!service.active && service.visible));
 
     return (
-        <motion.article
-            className="le-service-card"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.05, ease: "easeOut" }}
-            layout
-        >
-            <div className="le-service-icon">{service.icon}</div>
-            <span className={`le-service-badge ${isComingSoon ? "le-badge-soon" : "le-badge-active"}`}>
-                {isComingSoon ? "Coming soon" : "Available"}
-            </span>
-            <div className="le-service-cat">{service.category}</div>
-            <h4 className="le-service-name">{service.name}</h4>
-        </motion.article>
+        <article className="service-row" data-reveal style={{ "--row-index": index }}>
+            <span className="service-row-number">{String(index + 1).padStart(2, "0")}</span>
+            <div className="service-row-copy">
+                <p className="eyebrow">{service.category}</p>
+                <h3>{service.name}</h3>
+                {service.description ? <p>{service.description}</p> : null}
+            </div>
+            <span className="service-row-status">{comingSoon ? "Coming soon" : "Available"}</span>
+            <span className="service-row-arrow" aria-hidden="true">↗</span>
+        </article>
     );
 }

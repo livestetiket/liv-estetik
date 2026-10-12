@@ -1,64 +1,34 @@
-import { useEffect, useState } from "react";
-import { SOCIALS } from "../constants";
-import { getServices } from "../api";
+import { SOCIALS } from "../siteContent";
 
 export default function Footer() {
-    const [services, setServices] = useState([]);
-
-    useEffect(() => {
-        let mounted = true;
-        getServices()
-            .then((data) => mounted && setServices(data || []))
-            .catch((err) => console.error("Failed to load footer services:", err));
-        return () => (mounted = false);
-    }, []);
-
     return (
-        <footer className="le-footer">
-            <div className="le-footer-top">
-                <div>
-                    <div className="le-footer-logo">Liv Estetik</div>
-                    <p className="le-footer-about">
-                        A refined destination for hair restoration, luminous skin,
-                        anti-aging artistry, and body wellness.
-                    </p>
+        <footer className="site-footer">
+            <div className="footer-top section-wrap">
+                <div className="footer-brand">
+                    <a className="wordmark" href="#home"><span>Liv</span><span>Estetik</span></a>
+                    <p>Hair. Skin. Body.<br />Personal care in Addis Ababa.</p>
                 </div>
-                <div>
-                    <div className="le-footer-col-title">Services</div>
-                    <ul className="le-footer-links">
-                        {(services.slice(0, 5).map(s => s.name)).map((s) => (
-                            <li key={s}><a href="#services">{s}</a></li>
-                        ))}
-                    </ul>
+                <div className="footer-column">
+                    <h2>Explore</h2>
+                    <a href="#services">Treatments</a>
+                    <a href="#philosophy">Our approach</a>
+                    <a href="#booking">Appointments</a>
                 </div>
-                <div>
-                    <div className="le-footer-col-title">Clinic</div>
-                    <ul className="le-footer-links">
-                        {[["Our Philosophy", "#philosophy"], ["Client Stories", "#testimonials"], ["Book a Consultation", "#booking"]].map(([label, href]) => (
-                            <li key={label}><a href={href}>{label}</a></li>
-                        ))}
-                    </ul>
+                <div className="footer-column">
+                    <h2>Find us</h2>
+                    <p>Bole Road, Snap Plaza<br />1st Floor, Addis Ababa</p>
+                    <a href="tel:+251911504002">+251 911 50 40 02</a>
                 </div>
-                <div>
-    <div className="le-footer-col-title">Contact</div>
-
-    <ul className="le-footer-links">
-        {SOCIALS.map(({ label, icon: Icon, href }) => (
-            <li key={label}>
-                <a href={href} className="le-footer-social">
-                    <Icon size={14} />
-                </a>
-            </li>
-        ))}
-    </ul>
-</div>
+                <div className="footer-column">
+                    <h2>Follow</h2>
+                    {SOCIALS.filter(({ href }) => href !== "#").map(({ label, href }) => (
+                        <a key={label} href={href} target="_blank" rel="noreferrer">{label} <span aria-hidden="true">↗</span></a>
+                    ))}
+                </div>
             </div>
-            <div className="le-footer-bottom">
-                <div className="le-footer-copy">© {new Date().getFullYear()} Liv Estetik. All rights reserved.</div>
-                <div className="le-footer-bottom-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms</a>
-                </div>
+            <div className="footer-bottom section-wrap">
+                <span>© {new Date().getFullYear()} Liv Estetik</span>
+                <a href="#home">Back to top ↑</a>
             </div>
         </footer>
     );

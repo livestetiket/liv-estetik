@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1100" viewBox="0 0 900 1100" role="img" aria-labelledby="title desc">
+  <title id="title">Treatment room photography placeholder</title>
+  <desc id="desc">A quiet, warm-toned treatment room composition reserved for clinic photography.</desc>
+  <rect width="900" height="1100" fill="#ded8ca"/>
+  <path d="M0 0h900v250H0z" fill="#eee9dd"/>
+  <path d="M82 87h340v493H82z" fill="#aab7aa"/>
+  <path d="M118 122h268v424H118z" fill="#dce0d6"/>
+  <path d="M118 356h268v190H118z" fill="#c0c8bd"/>
+  <path d="M0 699h900v401H0z" fill="#c5b99f"/>
+  <path d="M151 679h618v264H151z" fill="#f4f0e7"/>
+  <path d="M198 626h529c28 0 51 23 51 51v35H147v-35c0-28 23-51 51-51z" fill="#fffdf8"/>
+  <path d="M204 943v105m492-105v105" stroke="#71695b" stroke-width="18"/>
+  <path d="M615 524c27-56 40-124 37-204" fill="none" stroke="#536a58" stroke-width="14" stroke-linecap="round"/>
+  <path d="M651 379c-76-5-108-40-94-105 58 5 89 40 94 105zm-2 37c63-14 95-54 85-118-54 14-82 53-85 118z" fill="#74866f"/>
+  <path d="M46 1050h808" stroke="#a8874e" stroke-width="3"/>
+</svg>

@@ -5,55 +5,56 @@ import { postMessage } from "../api";
 export default function Contact() {
     const [msg, setMsg] = useState({ name: "", email: "", message: "" });
     const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState({ type: "", message: "" });
 
     const handleSend = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setStatus({ type: "", message: "" });
         try {
             await postMessage(msg);
             setMsg({ name: "", email: "", message: "" });
-            alert("Your message was sent safely!");
+            setStatus({ type: "success", message: "Thank you. Your message has reached our team." });
         } catch (err) {
-            console.error("Failed to send message:", err);
-            alert("Failed to send message. Please try again later.");
+            setStatus({ type: "error", message: err.message || "We couldn't send your message. Please try again." });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        /* CHANGED: Replaced style color overrides to use the exact same classes and styles as le-testimonials */
-        <section id="contact" className="le-testimonials" style={{ borderTop: "1px solid rgba(201,168,76,0.1)" }}>
-            <div className="le-booking-grid">
+        <section id="contact" className="contact-section section-wrap">
+            <div className="contact-layout">
                 <FadeUp>
-                    <p className="le-section-eyebrow" style={{ textAlign: "left" }}>Contact Us</p>
-                    <h2 className="le-section-title" style={{ textAlign: "left" }}>Have a direct query?</h2>
-                    <p className="le-section-desc" style={{ textAlign: "left" }}>Reach out directly through our clinic channels or drop a quick line via the secure desk form.</p>
+                    <p className="eyebrow">Visit / 05</p>
+                    <h2 className="display-heading">Come by for a <em>talk.</em></h2>
+                    <p className="section-intro">Questions about a treatment? Speak with our team or leave a note.</p>
 
-                    <div className="le-booking-contact">
-                        <div className="le-booking-contact-item" style={{ color: "#e3b84a" }}>📞 +251 911 50 40 01</div>
-                        <div className="le-booking-contact-item" style={{ color: "#e3b84a" }}>📞 +251 911 50 40 02</div>
-                        <div className="le-booking-contact-item" style={{ color: "#e3b84a" }}>✉️ livestetiket@gmail.com</div>
-                        <div className="le-booking-contact-item" style={{ color: "#e3b84a" }}>📍 Bole Snap Plaza, Addis Ababa</div>
-                    </div>
+                    <address className="contact-details">
+                        <a href="tel:+251911504001">+251 911 50 40 01</a>
+                        <a href="tel:+251911504002">+251 911 50 40 02</a>
+                        <a href="mailto:livestetiket@gmail.com">livestetiket@gmail.com</a>
+                        <span>Bole Road, Snap Plaza, 1st Floor<br />Addis Ababa, Ethiopia</span>
+                    </address>
                 </FadeUp>
 
                 <FadeUp delay={0.1}>
-                    <form className="le-form-card" onSubmit={handleSend}>
-                        <div className="le-form-group" style={{ marginBottom: "1rem" }}>
-                            <label className="le-form-label">Name</label>
-                            <input className="le-form-input" value={msg.name} onChange={e => setMsg({...msg, name: e.target.value})} required />
-                        </div>
-                        <div className="le-form-group" style={{ marginBottom: "1rem" }}>
-                            <label className="le-form-label">Email Address</label>
-                            <input className="le-form-input" type="email" value={msg.email} onChange={e => setMsg({...msg, email: e.target.value})} required />
-                        </div>
-                        <div className="le-form-group" style={{ marginBottom: "1rem" }}>
-                            <label className="le-form-label">Message</label>
-                            <textarea className="le-form-textarea" value={msg.message} onChange={e => setMsg({...msg, message: e.target.value})} required />
-                        </div>
-                        <button type="submit" className="le-form-submit" disabled={loading}>
-                            {loading ? "Sending..." : "Send Message"}
+                    <form className="contact-form" onSubmit={handleSend}>
+                        <label className="form-field">
+                            <span>Name</span>
+                            <input name="name" autoComplete="name" value={msg.name} onChange={e => setMsg({...msg, name: e.target.value})} required />
+                        </label>
+                        <label className="form-field">
+                            <span>Email address</span>
+                            <input name="email" type="email" autoComplete="email" value={msg.email} onChange={e => setMsg({...msg, email: e.target.value})} required />
+                        </label>
+                        <label className="form-field">
+                            <span>How can we help?</span>
+                            <textarea name="message" value={msg.message} onChange={e => setMsg({...msg, message: e.target.value})} required rows="4" />
+                        </label>
+                        {status.message ? <p className={`form-status ${status.type}`} role={status.type === "error" ? "alert" : "status"}>{status.message}</p> : null}
+                        <button type="submit" className="button-primary" disabled={loading}>
+                            {loading ? "Sending..." : "Send a message"}<span aria-hidden="true">↗</span>
                         </button>
                     </form>
                 </FadeUp>

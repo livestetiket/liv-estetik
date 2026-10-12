@@ -1,17 +1,11 @@
-import { MARQUEE_ITEMS } from "../constants";
+import { MARQUEE_ITEMS } from "../siteContent";
 
 export default function Marquee() {
-    const doubled = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
     return (
-        <div className="le-marquee" aria-hidden="true">
-            <div className="le-marquee-track">
-                {doubled.map((item, i) => (
-                    <span key={i} className="le-marquee-item">
-                        <span>{item}</span>
-                        <span className="le-marquee-dot" />
-                    </span>
-                ))}
-            </div>
-        </div>
+        <aside className="practice-strip" aria-label="Clinic specialties">
+            {MARQUEE_ITEMS.map((item, index) => (
+                <span key={item}><span className="practice-index">0{index + 1}</span>{item}</span>
+            ))}
+        </aside>
     );
 }

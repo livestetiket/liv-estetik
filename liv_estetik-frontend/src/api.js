@@ -1,5 +1,4 @@
-// Default to empty so relative `/api` requests go through Vite proxy in dev.
-const API_BASE = (import.meta.env.VITE_API_BASE_URL) ?? "";
+const API_BASE = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
 
 async function request(path, opts = {}) {
   const res = await fetch(`${API_BASE}${path}`, opts);
@@ -16,12 +15,12 @@ async function request(path, opts = {}) {
 }
 
 export async function getServices() {
-  const res = await request(`/api/services`);
+  const res = await request(`/services`);
   return res?.data || [];
 }
 
 export async function getTestimonials() {
-  const res = await request(`/api/testimonials`);
+  const res = await request(`/testimonials`);
   return res?.data || [];
 }
 
@@ -33,12 +32,12 @@ export async function getTimeSlots(from, to, serviceIds) {
     qs.push(`serviceIds=${encodeURIComponent(serviceIds.join(","))}`);
   }
   const q = qs.length ? `?${qs.join("&")}` : "";
-  const res = await request(`/api/time-slots${q}`);
+  const res = await request(`/time-slots${q}`);
   return res?.data || [];
 }
 
 export async function postBooking(data) {
-  return request(`/api/bookings`, {
+  return request(`/bookings`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -46,7 +45,7 @@ export async function postBooking(data) {
 }
 
 export async function postMessage(data) {
-  return request(`/api/messages`, {
+  return request(`/messages`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

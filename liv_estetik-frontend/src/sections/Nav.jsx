@@ -1,19 +1,23 @@
-import { NAV_LINKS } from "../constants";
+import { useState } from "react";
+import { NAV_LINKS } from "../siteContent";
 
 export default function Nav() {
+    const [menuOpen, setMenuOpen] = useState(false);
+
     return (
-        <nav className="le-nav">
-            <img
-                src="/image/logo_liv-removebg-preview.png"
-                alt="Liv Estetik Logo"
-                className="w-32 h-auto le-nav-logo"
-            />
-            <ul className="le-nav-links">
-                {NAV_LINKS.map((l) => (
-                    <li key={l.label}><a href={l.href}>{l.label}</a></li>
+        <nav className="site-nav" aria-label="Main navigation">
+            <a className="wordmark" href="#home" aria-label="Liv Estetik, home">
+                <span>Liv</span><span>Estetik</span>
+            </a>
+            <ul className={`nav-links${menuOpen ? " is-open" : ""}`} id="site-navigation">
+                {NAV_LINKS.map((link) => (
+                    <li key={link.label}><a href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a></li>
                 ))}
             </ul>
-            <a href="#booking" className="le-nav-cta">Book Now</a>
+            <button className="mobile-nav-toggle" type="button" aria-controls="site-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
+                {menuOpen ? "Close" : "Menu"}
+            </button>
+            <a href="#booking" className="nav-booking">Book a visit <span aria-hidden="true">↗</span></a>
         </nav>
     );
 }

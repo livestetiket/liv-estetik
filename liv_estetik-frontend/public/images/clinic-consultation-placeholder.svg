@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1180" viewBox="0 0 960 1180" role="img" aria-labelledby="title desc">
+  <title id="title">Consultation photography placeholder</title>
+  <desc id="desc">Warm architectural shapes reserved for a portrait of a clinic consultation.</desc>
+  <rect width="960" height="1180" fill="#d6d0c0"/>
+  <rect x="78" y="82" width="804" height="1016" fill="#e9e3d6"/>
+  <rect x="548" y="82" width="334" height="620" fill="#aab7aa"/>
+  <path d="M548 702h334v396H548z" fill="#c9b99e"/>
+  <path d="M78 863c143-119 265-178 391-178 103 0 177 45 252 135v278H78z" fill="#66786b"/>
+  <ellipse cx="465" cy="414" rx="142" ry="177" fill="#bb9678"/>
+  <path d="M322 415c-3-169 68-258 167-258 114 0 170 91 149 246-43-24-73-67-87-121-63 74-138 114-229 133z" fill="#443b34"/>
+  <path d="M365 469c30 32 64 48 101 48 38 0 72-16 102-48" fill="none" stroke="#795b4b" stroke-width="8" stroke-linecap="round"/>
+  <path d="M383 391h37m83 0h37" fill="none" stroke="#55473e" stroke-width="9" stroke-linecap="round"/>
+  <path d="M465 417c-7 29-13 53-19 70 13 8 27 8 40 0" fill="none" stroke="#926f5b" stroke-width="7" stroke-linecap="round"/>
+  <path d="M283 802c27-126 90-189 189-189 115 0 184 70 208 209" fill="#f2eee5"/>
+  <path d="M78 1098h804" stroke="#a8874e" stroke-width="3"/>
+</svg>

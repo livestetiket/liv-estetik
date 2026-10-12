@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { FadeUp } from "../../components.jsx";
 import { getServices, getTimeSlots, postBooking } from "../../api";
-import BookingBackground from "./BookingBackground";
+import useRemoteResource from "../../hooks/useRemoteResource";
 import BookingStepper from "./BookingStepper";
-import BookingSteps from "./BookingSteps";
+import BookingSteps from "./BookingFlow";
 
 const EMPTY_FORM = {
     fullName: "", age: "", sex: "", phone: "", address: "", email: "", notes: ""
@@ -40,77 +40,51 @@ export default function Booking() {
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [showToast, setShowToast] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [submitError, setSubmitError] = useState("");
 
-    const [services, setServices] = useState([]);
-    const [loadingServices, setLoadingServices] = useState(true);
-    const [slots, setSlots] = useState([]);
-    const [loadingSlots, setLoadingSlots] = useState(false);
-
-    useEffect(() => {
-        let mounted = true;
-        getServices()
-            .then((data) => {
-                if (mounted) setServices(data || []);
-            })
-            .catch((err) => console.error("Failed to load services:", err))
-            .finally(() => mounted && setLoadingServices(false));
-        return () => (mounted = false);
-    }, []);
-
-    const loadSlots = async () => {
-        setLoadingSlots(true);
-        try {
-            const now = new Date();
-            const later = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-            const data = await getTimeSlots(now.toISOString(), later.toISOString(), selectedService ? [selectedService] : []);
-            setSlots(data || []);
-        } catch (err) {
-            console.error("Failed to load slots:", err);
-            setSlots([]);
-        } finally {
-            setLoadingSlots(false);
-        }
-    };
+    const loadServices = useCallback(() => getServices(), []);
+    const {
+        data: services,
+        loading: loadingServices,
+        error: servicesError,
+        isWakingUp: servicesWakingUp,
+        retry: retryServices,
+    } = useRemoteResource(loadServices);
+    const loadSlots = useCallback(() => {
+        const now = new Date();
+        const later = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+        return getTimeSlots(now.toISOString(), later.toISOString(), selectedService ? [selectedService] : []);
+    }, [selectedService]);
+    const {
+        data: slots,
+        loading: loadingSlots,
+        error: slotsError,
+        isWakingUp: slotsWakingUp,
+        retry: retrySlots,
+    } = useRemoteResource(loadSlots, { enabled: step === 3 });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
-    const goToStep2 = () => {
-    if (
-        !form.fullName.trim() ||
-        !form.age ||
-        !form.sex ||
-        !form.email.trim()
-    ) {
-        alert("Please fill in all required fields.");
-        return;
-    }
-
-    setStep(2);
-};
-
-    const goToStep3 = async () => {
-        if (!selectedService) {
-            alert("Please select a service.");
-            return;
-        }
-        await loadSlots();
-        setStep(3);
+    const goToStep2 = (event) => {
+        event.preventDefault();
+        setStep(2);
     };
 
-    const goToStep4 = () => {
-        if (!selectedSlot) {
-            alert("Please select a time slot.");
-            return;
-        }
-        setStep(4);
+    const chooseService = (serviceId) => {
+        setSelectedService(serviceId);
+        setSelectedSlot(null);
     };
+
+    const goToStep3 = () => setStep(3);
+    const goToStep4 = () => setStep(4);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setSubmitError("");
         try {
             const bookingData = {
                 ...form,
@@ -125,27 +99,25 @@ export default function Booking() {
             setShowToast(true);
             setTimeout(() => setShowToast(false), 4200);
         } catch (err) {
-            console.error("Booking failed:", err);
-            alert("There was a problem submitting your booking. Please try again later.");
+            setSubmitError(err.message || "We couldn't send your request. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <section id="booking" className="le-booking" style={{ position: "relative", overflow: "hidden" }}>
-            <BookingBackground />
-
-            <div className="le-booking-grid" style={{ gridTemplateColumns: "1fr", position: "relative", zIndex: 1 }}>
-                <FadeUp>
-                    <p className="le-section-eyebrow">Book now</p>
-                    <h2 className="le-section-title" style={{ color: "#fff" }}>
-                        Begin with a thoughtful consultation
-                    </h2>
+        <section id="booking" className="booking-section">
+            <div className="booking-layout section-wrap">
+                <div className="booking-intro">
+                    <FadeUp>
+                    <p className="eyebrow">Appointments / 04</p>
+                    <h2 className="display-heading">Start with a <em>conversation.</em></h2>
+                    <p className="booking-copy">Tell us what you have in mind. Our team will review your request and confirm a time with you.</p>
                     <BookingStepper step={step} />
-                </FadeUp>
+                    </FadeUp>
+                </div>
 
-                <FadeUp delay={0.1}>
+                <FadeUp className="booking-form-wrap" delay={0.1}>
                     <BookingSteps
                         step={step}
                         form={form}
@@ -154,14 +126,21 @@ export default function Booking() {
                         selectedService={selectedService}
                         selectedSlot={selectedSlot}
                         loadingServices={loadingServices}
+                        servicesError={servicesError}
+                        servicesWakingUp={servicesWakingUp}
+                        retryServices={retryServices}
                         loadingSlots={loadingSlots}
+                        slotsError={slotsError}
+                        slotsWakingUp={slotsWakingUp}
+                        retrySlots={retrySlots}
                         loading={loading}
+                        submitError={submitError}
                         handleChange={handleChange}
                         goToStep2={goToStep2}
                         goToStep3={goToStep3}
                         goToStep4={goToStep4}
                         setStep={setStep}
-                        setSelectedService={setSelectedService}
+                        setSelectedService={chooseService}
                         setSelectedSlot={setSelectedSlot}
                         handleSubmit={handleSubmit}
                         formatSlot={formatSlot}
@@ -169,9 +148,8 @@ export default function Booking() {
                 </FadeUp>
             </div>
 
-            <div className={`le-toast${showToast ? " show" : ""}`}>
-                <div className="le-toast-title">Request received</div>
-                <div className="le-toast-sub">We'll reach out to schedule your consultation shortly.</div>
+            <div className={`booking-toast${showToast ? " is-visible" : ""}`} role="status" aria-live="polite">
+                <strong>Request received.</strong> Our team will be in touch to confirm your appointment.
             </div>
         </section>
     );
