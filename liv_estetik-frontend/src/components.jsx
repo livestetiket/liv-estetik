@@ -18,9 +18,11 @@ export function SectionHeading({ eyebrow, title, children, dark = false }) {
 
 export function ServiceCard({ service, index }) {
     const comingSoon = Boolean(service.isComingSoon || service.comingSoon || (!service.active && service.visible));
+    const photo = SERVICE_PHOTOS[service.category] || SERVICE_PHOTOS.Hair;
 
     return (
         <article className="service-row" data-reveal style={{ "--row-index": index }}>
+            <div className="service-row-image"><img src={photo.src} alt={photo.alt} width="180" height="140" loading="lazy" /></div>
             <span className="service-row-number">{String(index + 1).padStart(2, "0")}</span>
             <div className="service-row-copy">
                 <p className="eyebrow">{service.category}</p>
@@ -32,3 +34,6 @@ export function ServiceCard({ service, index }) {
         </article>
     );
 }
+
+import { SERVICE_PHOTOS } from "./siteContent";
+

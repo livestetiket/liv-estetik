@@ -7,7 +7,7 @@ import Hero from "./sections/hero/Hero";
 import Marquee from "./sections/Marquee";
 import Services from "./sections/Services";
 import Philosophy from "./sections/Philosophy";
-import Testimonials from "./sections/Testimonials";
+import Photography, { Results } from "./sections/Photography";
 import Booking from "./sections/booking/Booking";
 import Contact from "./sections/Contact";
 import Footer from "./sections/Footer";
@@ -23,7 +23,8 @@ export default function App() {
             <Marquee />
             <Services />
             <Philosophy />
-            <Testimonials />
+            <Results />
+            <Photography />
             <Booking />
             <Contact />
             <Footer />
