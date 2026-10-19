@@ -11,6 +11,16 @@ The admin build reads `VITE_API_BASE_URL` from `liv_estetik-admin/.env.productio
 
 Extract each `cpanel-upload.zip` directly into its document root so `index.html`, `assets/`, and public images sit at the root. Keep existing server configuration files such as `.htaccess` unless you have checked their contents.
 
+### Brand and hero images
+
+- Put the clinic logo PNG at `liv_estetik-frontend/public/liv-estetik-logo.png` and copy the same file to `liv_estetik-admin/public/liv-estetik-logo.png`. Both files are used for the logo and favicon.
+- To replace the home hero placeholder, put a photo at `liv_estetik-frontend/public/images/hero-clinic.jpg`. The site will use it automatically; until then, it shows a designed placeholder.
+- Rebuild and re-upload the affected site's ZIP after adding or changing these files.
+
+### Public API connection
+
+The public site production build uses `VITE_API_URL=https://liv-estetik-api.onrender.com/api`. Keep the `/api` suffix. Local development defaults to the Vite `/api` proxy.
+
 ## MongoDB additive backfill
 
 Before deployment, back up the production database. New collections and indexes are created by Mongoose as their models are first used. To add normalized phone keys and label pre-existing bookings whose source was never captured, run this once from `liv_estetik-backend/` against the configured production database:
@@ -43,3 +53,9 @@ WhatsApp sharing opens a prefilled message for a staff member to review, choose 
 ## Backend environment
 
 Existing production settings remain in the backend host's secret environment: `MONGO_URI`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and mail configuration as needed. Add `REPORT_CRON_SECRET` only when enabling cPanel scheduled reports. Do not copy backend `.env` files to cPanel public roots or frontend builds.
+
+The Render API must use the MongoDB database that contains the clinic's services and staff accounts. Its startup log reports the connected database name. If it says `(test)` while the clinic data is stored in another database, update the database name in `MONGO_URI` before expecting those records to appear.
+
+### One-time admin account setup or password reset
+
+For a Render Free web service without Shell access, set a new `ADMIN_PASSWORD` (at least 16 characters) in the service's Environment settings. After the latest backend code is deployed, temporarily change the Start Command to `npm run bootstrap:admin && npm start`. Wait for `[admin-bootstrap] Configured admin account is ready.` in the logs, then immediately change the Start Command back to `npm start` and wait for that deploy. The command only creates or resets the configured admin account; it does not seed sample clinic content. Do not leave the temporary command configured, because it applies `ADMIN_PASSWORD` each time the service starts.

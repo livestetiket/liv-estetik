@@ -31,7 +31,6 @@ export default function Contact() {
                     <p className="section-intro">Questions about a treatment? Speak with our team or leave a note.</p>
 
                     <address className="contact-details">
-                        <a href="tel:+251911504001">+251 911 50 40 01</a>
                         <a href="tel:+251911504002">+251 911 50 40 02</a>
                         <a href="mailto:livestetiket@gmail.com">livestetiket@gmail.com</a>
                         <span>Bole Road, Snap Plaza, 1st Floor<br />Addis Ababa, Ethiopia</span>

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -95,4 +95,50 @@ body {
   body, main { background: #fff !important; color: #111 !important; }
   .report-print-area { margin: 0 !important; }
   .report-print-area article, .report-print-area section { break-inside: avoid; box-shadow: none !important; }
+}
+
+:root {
+  color: #25332d;
+  background: #f5f6f2;
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body { background: #f5f6f2; color: #25332d; }
+.admin-shell { background: #f5f6f2; }
+.admin-sidebar { background: #fbfcf9; }
+.admin-topbar { background: rgba(251, 252, 249, 0.9); }
+.dashboard-logo { display: block; width: 9rem; height: 3rem; object-fit: contain; object-position: left center; }
+.dashboard-logo-mobile { width: 3.5rem; height: 2.75rem; }
+.brand-logo-fallback { color: #214c43; font-family: "Fraunces", Georgia, serif; font-size: 1.45rem; font-weight: 600; letter-spacing: -0.04em; }
+.staff-login { background: #f4f6f2; }
+.staff-login-aside { background: linear-gradient(145deg, #f8faf6, #edf2ec); }
+.staff-login-logo { width: min(13rem, 72%); height: 3.75rem; object-fit: contain; object-position: left center; }
+.admin-section > div:first-child { padding-bottom: 1.2rem; border-bottom: 1px solid #e4e8e2; }
+
+input, select, textarea { color-scheme: light; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,
+select:focus,
+textarea:focus {
+  border-color: #5b8375;
+  box-shadow: 0 0 0 3px rgba(91, 131, 117, 0.12);
+}
+
+@media (max-width: 1023px) {
+  .staff-login-grid { max-width: 32rem; }
+  .staff-login-aside { min-height: auto; }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-logo-mobile { display: none; }
+}
+
+@media print {
+  .admin-shell { background: #fff !important; }
 }

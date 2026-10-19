@@ -52,9 +52,10 @@ export function getServicesLabel(services) {
 
 export function StatusPill({ value }) {
   const key = String(value || "pending").toLowerCase();
+  const label = String(value || "pending").replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
   return (
     <span className={`inline-flex items-center rounded-md border px-2 py-1 text-xs font-semibold ${STATUS_STYLES[key] || "bg-stone-100 text-stone-700 border-stone-200"}`}>
-      {value || "pending"}
+      {label}
     </span>
   );
 }
@@ -82,7 +83,7 @@ export function IconButton({ title, icon: Icon, onClick, disabled, tone = "defau
 
 export function Field({ label, children, className = "" }) {
   return (
-    <label className={`grid gap-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500 ${className}`}>
+    <label className={`grid gap-1.5 text-sm font-medium text-stone-700 ${className}`}>
       <span>{label}</span>
       {children}
     </label>
@@ -90,22 +91,22 @@ export function Field({ label, children, className = "" }) {
 }
 
 export function TextInput(props) {
-  return <input {...props} className={`rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-champagne-500 focus:ring-2 focus:ring-champagne-100 ${props.className || ""}`} />;
+  return <input {...props} className={`min-h-11 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-evergreen-700 focus:ring-2 focus:ring-evergreen-700/10 ${props.className || ""}`} />;
 }
 
 export function TextArea(props) {
-  return <textarea {...props} className={`min-h-24 rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-champagne-500 focus:ring-2 focus:ring-champagne-100 ${props.className || ""}`} />;
+  return <textarea {...props} className={`min-h-24 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-evergreen-700 focus:ring-2 focus:ring-evergreen-700/10 ${props.className || ""}`} />;
 }
 
 export function Select(props) {
-  return <select {...props} className={`rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-champagne-500 focus:ring-2 focus:ring-champagne-100 ${props.className || ""}`} />;
+  return <select {...props} className={`min-h-11 rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 outline-none transition focus:border-evergreen-700 focus:ring-2 focus:ring-evergreen-700/10 ${props.className || ""}`} />;
 }
 
 export function PrimaryButton({ children, icon: Icon, className = "", ...props }) {
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-md bg-evergreen-900 px-4 py-2 text-sm font-semibold text-champagne-100 transition hover:bg-evergreen-800 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-evergreen-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-evergreen-800 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
     >
       {Icon ? <Icon /> : null}
       {children}
@@ -124,12 +125,12 @@ export function EmptyState({ title, body }) {
 
 export function SectionShell({ title, subtitle, action, children }) {
   return (
-    <section className="grid gap-5">
+    <section className="admin-section grid gap-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-champagne-700">Liv Estetik</p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-evergreen-950">{title}</h1>
-          {subtitle ? <p className="mt-1 max-w-2xl text-sm text-stone-500">{subtitle}</p> : null}
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-evergreen-700">Clinic workspace</p>
+          <h1 className="mt-1 font-display text-3xl font-medium text-evergreen-950 sm:text-4xl">{title}</h1>
+          {subtitle ? <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">{subtitle}</p> : null}
         </div>
         {action}
       </div>

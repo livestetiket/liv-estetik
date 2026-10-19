@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { NAV_LINKS } from "../siteContent";
+import BrandLogo from "../components/BrandLogo";
 
 export default function Nav() {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
         <nav className="site-nav" aria-label="Main navigation">
-            <a className="wordmark" href="#home" aria-label="Liv Estetik, home"><span>Liv</span><span>Estetik</span></a>
+            <a className="brand-link" href="#home" aria-label="Liv Estetik, home"><BrandLogo className="nav-logo" /></a>
             <ul className={`nav-links${menuOpen ? " is-open" : ""}`} id="site-navigation">
                 {NAV_LINKS.map((link) => <li key={link.label}><a href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a></li>)}
             </ul>

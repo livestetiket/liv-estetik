@@ -129,20 +129,20 @@ body {
 
 :root {
   font-family: "DM Sans", sans-serif;
-  color: #202a24;
-  background: #f7f4ec;
-  --green: #173b36;
-  --green-deep: #102d29;
-  --green-soft: #31564e;
-  --gold: #a8874e;
-  --gold-dark: #795d31;
-  --cream: #f7f4ec;
-  --cream-light: #fcfaf5;
-  --cream-deep: #eee9dd;
-  --ink: #202a24;
-  --muted: #59645d;
-  --line: rgba(32, 42, 36, 0.18);
-  --line-light: rgba(247, 244, 236, 0.23);
+  color: #25332d;
+  background: #f8f9f6;
+  --green: #214c43;
+  --green-deep: #173a33;
+  --green-soft: #386257;
+  --gold: #b19a66;
+  --gold-dark: #806b3e;
+  --cream: #f3f5f0;
+  --cream-light: #fbfcf9;
+  --cream-deep: #e9eee8;
+  --ink: #25332d;
+  --muted: #5d6962;
+  --line: rgba(37, 51, 45, 0.14);
+  --line-light: rgba(243, 245, 240, 0.22);
   --display: "Fraunces", Georgia, serif;
   --body: "DM Sans", sans-serif;
   --page-width: 1280px;
@@ -166,6 +166,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* Fraunces brings editorial warmth; DM Sans keeps treatment details easy to scan. */
 .site-nav { position: relative; z-index: 5; display: flex; min-height: 5.25rem; align-items: center; justify-content: space-between; gap: 2rem; padding: 0 max(1.5rem, calc((100% - var(--page-width)) / 2)); background: var(--cream-light); border-bottom: 1px solid var(--line); }
+.brand-link { display: inline-flex; min-width: 8rem; align-items: center; text-decoration: none; }
+.nav-logo { display: block; width: 9rem; height: 3rem; object-fit: contain; object-position: left center; }
+.brand-logo-fallback { color: var(--green); font: 600 1.45rem/1 var(--display); letter-spacing: -0.04em; }
 .wordmark { display: inline-flex; flex-direction: column; color: var(--green); font: 1.45rem/0.86 var(--display); text-decoration: none; }
 .wordmark span:last-child { padding-left: 0.78rem; font-size: 0.92rem; letter-spacing: 0.08em; }
 .nav-links { display: flex; align-items: center; gap: clamp(1rem, 3vw, 3rem); margin: 0; padding: 0; list-style: none; }
@@ -198,6 +201,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .image-frame { position: relative; overflow: hidden; background: var(--cream-deep); }
 .image-frame img { display: block; width: 100%; height: 100%; object-fit: cover; transform: translate3d(0, var(--parallax-y, 0), 0) scale(1.04); will-change: transform; }
 .hero-image { width: 100%; max-width: 39rem; aspect-ratio: 0.83; margin-left: auto; background: #d9d2c1; }
+.hero-image-placeholder { position: relative; display: grid; width: 100%; max-width: 39rem; aspect-ratio: 0.9; align-content: center; justify-items: center; gap: 1.25rem; overflow: hidden; margin-left: auto; border: 1px solid rgba(255,255,255,.25); background: linear-gradient(145deg, #dfe7df, #cbd8d0 58%, #d8d5c6); color: var(--green-deep); text-align: center; }
+.hero-image-placeholder::before, .hero-image-placeholder::after { position: absolute; border: 1px solid rgba(33,76,67,.16); border-radius: 50%; content: ""; }
+.hero-image-placeholder::before { width: 74%; aspect-ratio: 1; }
+.hero-image-placeholder::after { width: 56%; aspect-ratio: 1; }
+.hero-placeholder-logo { position: relative; z-index: 1; width: min(65%, 17rem); height: 5rem; object-fit: contain; }
+.hero-placeholder-label, .hero-placeholder-caption { position: relative; z-index: 1; color: var(--green); font-size: .7rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+.hero-placeholder-caption { color: #58685e; font-size: .62rem; font-weight: 600; letter-spacing: .1em; }
 .hero-visual figcaption, .philosophy-visual figcaption { display: flex; justify-content: space-between; gap: 1rem; margin-top: 0.85rem; color: rgba(252, 250, 245, 0.7); font-size: 0.7rem; letter-spacing: 0.07em; text-transform: uppercase; }
 .hero-visual figcaption span { color: #d6bb83; }
 .practice-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line); background: var(--cream-deep); }
@@ -349,7 +359,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .site-footer { background: var(--green-deep); color: var(--cream-light); padding-block: 4rem 1.5rem; }
 .footer-top { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 3rem; padding-bottom: 3.5rem; }
-.footer-brand .wordmark { color: var(--cream-light); }
+.footer-brand .brand-link { margin-bottom: 1rem; }
+.footer-logo { display: block; width: 9rem; height: 3rem; object-fit: contain; object-position: left center; }
+.footer-brand .brand-logo-fallback { color: var(--cream-light); }
 .footer-brand p, .footer-column p { color: rgba(252, 250, 245, 0.72); font-size: 0.83rem; line-height: 1.8; }
 .footer-column { display: grid; align-content: start; justify-items: start; gap: 0.6rem; }
 .footer-column h2 { margin: 0 0 0.45rem; color: #dfc692; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; }

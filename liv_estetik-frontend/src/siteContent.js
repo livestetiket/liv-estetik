@@ -6,7 +6,6 @@ export const NAV_LINKS = [
     { label: "Gallery", href: "#gallery" },
     { label: "Contact", href: "#contact" },
 ];
-
 export const PHOTO_AREAS = [
     { title: "Hair restoration", note: "Consultations and treatment preparation", src: "/images/hair-restoration-placeholder.svg", alt: "Illustrated placeholder for an authentic hair restoration consultation photograph", shape: "photo-tall" },
     { title: "Facial treatments", note: "Treatment room and skincare details", src: "/images/facial-treatment-placeholder.svg", alt: "Illustrated placeholder for an authentic facial treatment photograph", shape: "photo-wide" },
@@ -46,5 +45,3 @@ export const PHILOSOPHY_VALUES = [
         body: "There is no pressure to decide in the room. We make space for thoughtful choices.",
     },
 ];
-
-export const SERVICE_TABS = ["All", "Hair", "Skin / Anti-aging", "Body"];

@@ -131,6 +131,7 @@ export default function Services() {
           </article>
         ))}
       </div>
+      {!loading && !error && rows.length === 0 ? <p className="rounded-xl border border-dashed border-stone-300 bg-white p-6 text-sm leading-6 text-stone-600">No service records were found in the connected database. Add a treatment above, or check that Render is connected to the database that contains your clinic services.</p> : null}
     </SectionShell>
   );
 }

@@ -1,11 +1,12 @@
 import { SOCIALS } from "../siteContent";
+import BrandLogo from "../components/BrandLogo";
 
 export default function Footer() {
     return (
         <footer className="site-footer">
             <div className="footer-top section-wrap">
                 <div className="footer-brand">
-                    <a className="wordmark" href="#home"><span>Liv</span><span>Estetik</span></a>
+                    <a className="brand-link footer-logo-link" href="#home" aria-label="Liv Estetik, back to home"><BrandLogo className="footer-logo" /></a>
                     <p>Hair. Skin. Body.<br />Personal care in Addis Ababa.</p>
                 </div>
                 <div className="footer-column">

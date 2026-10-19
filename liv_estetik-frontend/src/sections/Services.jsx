@@ -1,5 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
-import { SERVICE_TABS } from "../siteContent";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { FadeUp, ServiceCard } from "../components.jsx";
 import { getServices } from "../api";
 import useRemoteResource from "../hooks/useRemoteResource";
@@ -10,9 +9,17 @@ export default function Services() {
     const loadServices = useCallback(() => getServices(), []);
     const { data: services, loading, error, isWakingUp, retry } = useRemoteResource(loadServices);
 
-    // Dynamic filtering handles API updates smoothly
+    const categories = useMemo(() => [
+        "All",
+        ...new Set(services.map((service) => service.category?.trim()).filter(Boolean)),
+    ], [services]);
+
+    useEffect(() => {
+        if (!categories.includes(activeTab)) setActiveTab("All");
+    }, [activeTab, categories]);
+
     const filtered = useMemo(() =>
-            activeTab === "All" ? services : services.filter((s) => s.category === activeTab),
+            activeTab === "All" ? services : services.filter((s) => s.category?.trim() === activeTab),
         [activeTab, services]
     );
 
@@ -30,7 +37,7 @@ export default function Services() {
 
             <FadeUp className="services-controls" delay={0.08}>
                 <div className="filter-list" role="group" aria-label="Filter treatments by category">
-                    {SERVICE_TABS.map((tab) => (
+                    {categories.map((tab) => (
                         <button
                             key={tab}
                             type="button"
@@ -47,7 +54,7 @@ export default function Services() {
             <div className="service-list">
                 {loading ? <><ResourceSkeleton rows={5} variant="service" />{isWakingUp && <WakingMessage />}</> : null}
                 {error ? <ResourceFailure message={`We couldn't load the treatment list. ${error}`} onRetry={retry} /> : null}
-                {!loading && !error && filtered.length === 0 ? <p className="resource-empty">There are no treatments in this category yet.</p> : null}
+                {!loading && !error && filtered.length === 0 ? <p className="resource-empty">No published treatments are available right now.</p> : null}
                 {!loading && !error ? filtered.map((s, i) => (
                         <ServiceCard key={String(s._id || s.name)} service={s} index={i} />
                     )) : null}
