@@ -14,10 +14,6 @@ function validateBody(schema) {
       }));
       return next(ApiError.badRequest("Validation failed", details));
     }
-    // eslint-disable-next-line no-console
-    console.log("[validateBody] input:", JSON.stringify(req.body, null, 2));
-    // eslint-disable-next-line no-console
-    console.log("[validateBody] parsed:", JSON.stringify(result.data, null, 2));
     req.body = result.data;
     next();
   };

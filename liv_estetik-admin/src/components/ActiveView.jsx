@@ -8,10 +8,15 @@ import Testimonials from "../views/Testimonials";
 import AuditLogs from "../views/AuditLogs";
 import Emails from "../views/Emails";
 import AccountSettings from "../views/AccountSettings";
+import Calls from "../views/Calls";
+import SocialActivity from "../views/SocialActivity";
+import Reports from "../views/Reports";
+import ClinicSettings from "../views/ClinicSettings";
 
 const VIEW_MAP = {
   overview: Overview,
   bookings: Bookings,
+  calls: Calls,
   messages: Messages,
   slots: TimeSlots,
   users: Users,
@@ -19,6 +24,9 @@ const VIEW_MAP = {
   testimonials: Testimonials,
   emails: Emails,
   audit: AuditLogs,
+  social: SocialActivity,
+  reports: Reports,
+  settings: ClinicSettings,
   account: AccountSettings,
 };
 

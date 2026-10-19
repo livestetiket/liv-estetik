@@ -7,10 +7,13 @@ const {
   approveBookingSchema,
   rejectBookingSchema,
   rescheduleBookingSchema,
+  createReceptionBookingSchema,
 } = require("../validators/booking_validator");
 const { blockSlotSchema, createSlotSchema } = require("../validators/slot_validator");
 const { updateMessageSchema } = require("../validators/content_validator");
 const { z } = require("zod");
+const operationsController = require("../controllers/operations_controller");
+const { createCallSchema, updateCallSchema } = require("../validators/activity_validator");
 
 const router = express.Router();
 
@@ -20,6 +23,8 @@ router.use(requireAuth, requireRole("reception", "admin"));
 router.get("/dashboard", receptionController.getDashboard);
 
 router.get("/bookings", receptionController.listBookings);
+router.post("/bookings", validateBody(createReceptionBookingSchema), receptionController.createBooking);
+router.get("/patients/lookup", receptionController.lookupPatient);
 router.get("/bookings/:id", receptionController.getBooking);
 router.patch(
   "/bookings/:id/approve",
@@ -37,9 +42,10 @@ router.patch(
   receptionController.rescheduleBooking
 );
 router.patch("/bookings/:id/complete", receptionController.completeBooking);
+router.patch("/bookings/:id/status", validateBody(z.object({ status: z.enum(["arrived", "in_progress", "completed", "no_show"]) })), receptionController.updateBookingStatus);
 router.patch(
   "/bookings/:id/cancel",
-  validateBody(z.object({ reason: z.string().optional() })),
+  validateBody(z.object({ reason: z.string().trim().min(2, "Cancellation reason is required") })),
   receptionController.cancelBooking
 );
 router.patch(
@@ -47,6 +53,10 @@ router.patch(
   validateBody(z.object({ note: z.string().min(1) })),
   receptionController.addNote
 );
+
+router.get("/calls", operationsController.listCalls);
+router.post("/calls", validateBody(createCallSchema), operationsController.createCall);
+router.patch("/calls/:id", validateBody(updateCallSchema), operationsController.updateCall);
 
 router.get("/messages", receptionController.listMessages);
 router.patch(

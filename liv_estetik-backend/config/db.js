@@ -10,7 +10,7 @@ async function connectDB() {
     console.log(`[db] Connected to MongoDB (${mongoose.connection.name})`);
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error("[db] MongoDB connection failed:", err.message);
+    console.error("[db] MongoDB connection failed; verify the configured database service and network access.");
     process.exit(1);
   }
 

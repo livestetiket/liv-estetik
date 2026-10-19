@@ -8,12 +8,17 @@ import {
   FiScissors,
   FiStar,
   FiMail,
+  FiPhone,
+  FiBarChart2,
+  FiTrendingUp,
+  FiSettings,
 } from "react-icons/fi";
 
 export const ROLE_NAV = {
   admin: [
     { id: "overview", label: "Overview", icon: FiGrid },
     { id: "bookings", label: "Bookings", icon: FiCalendar },
+    { id: "calls", label: "Call Activity", icon: FiPhone },
     { id: "messages", label: "Messages", icon: FiMessageSquare },
     { id: "slots", label: "Time Slots", icon: FiClock },
     { id: "users", label: "Users", icon: FiUsers },
@@ -21,10 +26,14 @@ export const ROLE_NAV = {
     { id: "testimonials", label: "Testimonials", icon: FiStar },
     { id: "emails", label: "Emails", icon: FiMail },
     { id: "audit", label: "Audit Logs", icon: FiArchive },
+    { id: "social", label: "Social Activity", icon: FiTrendingUp },
+    { id: "reports", label: "Reports", icon: FiBarChart2 },
+    { id: "settings", label: "Clinic Settings", icon: FiSettings },
   ],
   reception: [
     { id: "overview", label: "Overview", icon: FiGrid },
     { id: "bookings", label: "Bookings", icon: FiCalendar },
+    { id: "calls", label: "Call Activity", icon: FiPhone },
     { id: "messages", label: "Messages", icon: FiMessageSquare },
     { id: "slots", label: "Time Slots", icon: FiClock },
   ],

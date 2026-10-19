@@ -6,7 +6,7 @@ import BookingStepper from "./BookingStepper";
 import BookingSteps from "./BookingFlow";
 
 const EMPTY_FORM = {
-    fullName: "", age: "", sex: "", phone: "", address: "", email: "", notes: ""
+    fullName: "", phone: "", email: "", notes: ""
 };
 
 function formatSlot(slot) {

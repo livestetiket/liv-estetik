@@ -90,29 +90,12 @@ export default function BookingSteps({
                                 <input name="fullName" autoComplete="name" value={form.fullName} onChange={handleChange} required minLength="2" />
                             </label>
                             <label className="form-field">
-                                <span>Age</span>
-                                <input name="age" type="number" min="1" max="120" inputMode="numeric" value={form.age} onChange={handleChange} required />
+                                <span>Phone</span>
+                                <input name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} required minLength="7" />
                             </label>
                             <label className="form-field">
-                                <span>Gender</span>
-                                <select name="sex" value={form.sex} onChange={handleChange} required>
-                                    <option value="">Choose one</option>
-                                    <option>Female</option>
-                                    <option>Male</option>
-                                    <option>Prefer not to say</option>
-                                </select>
-                            </label>
-                            <label className="form-field">
-                                <span>Phone <small>Optional</small></span>
-                                <input name="phone" type="tel" autoComplete="tel" value={form.phone} onChange={handleChange} />
-                            </label>
-                            <label className="form-field">
-                                <span>Email address</span>
-                                <input name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} required />
-                            </label>
-                            <label className="form-field">
-                                <span>Address <small>Optional</small></span>
-                                <input name="address" autoComplete="street-address" value={form.address} onChange={handleChange} />
+                                <span>Email address <small>Optional</small></span>
+                                <input name="email" type="email" autoComplete="email" value={form.email} onChange={handleChange} />
                             </label>
                         </div>
                         <label className="form-field">
@@ -201,7 +184,7 @@ export default function BookingSteps({
                     <dl className="booking-summary">
                         <div><dt>Name</dt><dd>{form.fullName}</dd></div>
                         <div><dt>Email</dt><dd>{form.email}</dd></div>
-                        <div><dt>Phone</dt><dd>{form.phone || "Not provided"}</dd></div>
+                        <div><dt>Phone</dt><dd>{form.phone}</dd></div>
                         <div><dt>Treatment</dt><dd>{selectedServiceName}</dd></div>
                         <div><dt>Requested time</dt><dd>{formatSlot(slots.find((slot) => String(slot._id || slot.id) === String(selectedSlot)) || {})}</dd></div>
                     </dl>

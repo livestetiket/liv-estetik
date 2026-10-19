@@ -11,6 +11,7 @@ const authRoutes = require("./routes/auth_route");
 const publicRoutes = require("./routes/public_route");
 const receptionRoutes = require("./routes/reception_route");
 const adminRoutes = require("./routes/admin_route");
+const cronRoutes = require("./routes/cron_route");
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", service: "liv-estetik-api" });
 });
 
+app.use("/api/cron", cronRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", publicRoutes);
 app.use("/api/reception", receptionRoutes);

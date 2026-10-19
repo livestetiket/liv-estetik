@@ -34,7 +34,7 @@ function errorHandler(err, req, res, next) {
 
   if (statusCode >= 500) {
     // eslint-disable-next-line no-console
-    console.error("[error]", err);
+    console.error("[error] Request failed with an internal error.");
   }
 
   res.status(statusCode).json({

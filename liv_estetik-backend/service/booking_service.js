@@ -26,7 +26,7 @@ async function recordStatusChange({ bookingId, fromStatus, toStatus, changedBy, 
  * section 6.4 ("never trust only frontend disabled states").
  * Only one service per booking is allowed.
  */
-async function createBookingRequest(payload) {
+async function createBookingRequest(payload, { actor, source = "website" } = {}) {
   const { fullName, age, sex, phone, address, email, service, requestedSlot, notes } = payload;
 
   const serviceDoc = await Service.findById(service);
@@ -50,7 +50,7 @@ async function createBookingRequest(payload) {
   try {
     const customer = await findOrCreateCustomer({
       fullName,
-      email,
+      email: email || undefined,
       phone,
       age,
       sex,
@@ -66,7 +66,10 @@ async function createBookingRequest(payload) {
         sex,
         phone,
         address,
-        email,
+        email: email || undefined,
+        source,
+        createdBy: actor?.id,
+        assignedTo: actor?.id,
         service,
         serviceName: serviceDoc.name,
         requestedSlot: slot._id,
@@ -84,7 +87,7 @@ async function createBookingRequest(payload) {
         booking: booking._id,
         fromStatus: null,
         toStatus: "pending",
-        message: "Booking request submitted by customer",
+        message: actor ? "Booking created by staff" : "Booking request submitted through the website",
       },
     ]);
   } catch (err) {
@@ -113,10 +116,6 @@ async function approveBooking({ bookingId, staffMessage, actor }) {
   if (!["pending", "reschedule_requested"].includes(booking.status)) {
     throw ApiError.badRequest(`Cannot approve a booking with status "${booking.status}"`);
   }
-  if (!booking.email) {
-    throw ApiError.badRequest("Booking has no customer email on file");
-  }
-
   const fromStatus = booking.status;
   booking.status = "approved";
   booking.approvedSlot = booking.requestedSlot;
@@ -144,7 +143,7 @@ async function approveBooking({ bookingId, staffMessage, actor }) {
     metadata: { staffMessage },
   });
 
-  const emailRecord = await sendBookingEmail("booking_approved", booking);
+  const emailRecord = booking.email ? await sendBookingEmail("booking_approved", booking) : { status: "skipped" };
 
   return { booking, emailRecord };
 }
@@ -188,7 +187,7 @@ async function rejectBooking({ bookingId, reason, actor }) {
     metadata: { reason },
   });
 
-  const emailRecord = await sendBookingEmail("booking_rejected", booking);
+  const emailRecord = booking.email ? await sendBookingEmail("booking_rejected", booking) : { status: "skipped" };
 
   return { booking, emailRecord };
 }
@@ -250,7 +249,7 @@ async function rescheduleBooking({ bookingId, newSlotId, reason, actor }) {
     metadata: { newSlotId, reason },
   });
 
-  const emailRecord = await sendBookingEmail("booking_rescheduled", booking);
+  const emailRecord = booking.email ? await sendBookingEmail("booking_rescheduled", booking) : { status: "skipped" };
 
   return { booking, emailRecord };
 }
@@ -280,6 +279,25 @@ async function completeBooking({ bookingId, actor }) {
     entityId: booking._id,
   });
 
+  return booking;
+}
+
+async function updateBookingStatus({ bookingId, status, actor }) {
+  const booking = await getBookingOr404(bookingId);
+  const allowed = {
+    approved: ["arrived", "in_progress", "completed", "no_show"],
+    rescheduled: ["arrived", "in_progress", "completed", "no_show"],
+    arrived: ["in_progress", "completed", "no_show"],
+    in_progress: ["completed"],
+  };
+  if (!allowed[booking.status]?.includes(status)) {
+    throw ApiError.badRequest(`Cannot change booking from "${booking.status}" to "${status}"`);
+  }
+  const fromStatus = booking.status;
+  booking.status = status;
+  await booking.save();
+  await recordStatusChange({ bookingId: booking._id, fromStatus, toStatus: status, changedBy: actor.id, changedByRole: actor.role });
+  await logAction({ actor, action: `booking.${status}`, entityType: "Booking", entityId: booking._id });
   return booking;
 }
 
@@ -340,6 +358,7 @@ module.exports = {
   rejectBooking,
   rescheduleBooking,
   completeBooking,
+  updateBookingStatus,
   cancelBooking,
   addInternalNote,
   getBookingOr404,

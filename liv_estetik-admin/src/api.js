@@ -124,10 +124,40 @@ export async function getDashboardSummary(role) {
   return parseData(body) || {};
 }
 
+export async function getClinicSettings() {
+  return parseData(await request("/api/admin/clinic-settings"));
+}
+
+export async function updateClinicSettings(payload) {
+  return parseData(await request("/api/admin/clinic-settings", { method: "PUT", body: JSON.stringify(payload) }));
+}
+
 export async function getBookings(role) {
   const path = role === "admin" ? "/api/admin/bookings" : "/api/reception/bookings";
-  const body = await request(path);
+  const body = await request(`${path}?limit=100`);
   return parseData(body) || [];
+}
+
+export async function getBookableServices() {
+  return parseData(await request("/api/services")) || [];
+}
+
+export async function getAvailableSlots(from, to, serviceId) {
+  const params = new URLSearchParams({ from, to });
+  if (serviceId) params.set("serviceIds", serviceId);
+  return parseData(await request(`/api/time-slots?${params}`)) || [];
+}
+
+export async function createReceptionBooking(payload) {
+  return parseData(await request("/api/reception/bookings", { method: "POST", body: JSON.stringify(payload) }));
+}
+
+export async function lookupPatient(phone) {
+  return parseData(await request(`/api/reception/patients/lookup?phone=${encodeURIComponent(phone)}`));
+}
+
+export async function updateBookingStatus(id, status) {
+  return parseData(await request(`/api/reception/bookings/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }));
 }
 
 export async function getBooking(role, id) {
@@ -170,7 +200,7 @@ export async function completeBooking(id) {
   return parseData(body);
 }
 
-export async function cancelBooking(id, reason = "") {
+export async function cancelBooking(id, reason) {
   const body = await request(`/api/reception/bookings/${id}/cancel`, {
     method: "PATCH",
     body: JSON.stringify({ reason }),
@@ -374,4 +404,59 @@ export async function retryEmailNotification(id) {
 export async function getAuditLogs() {
   const body = await request("/api/admin/audit-logs");
   return parseData(body) || [];
+}
+
+export async function getCallActivities(filters = {}) {
+  const params = new URLSearchParams(filters);
+  const body = await request(`/api/reception/calls${params.size ? `?${params}` : ""}`);
+  return parseData(body) || [];
+}
+
+export async function createCallActivity(payload) {
+  return parseData(await request("/api/reception/calls", { method: "POST", body: JSON.stringify(payload) }));
+}
+
+export async function updateCallActivity(id, patch) {
+  return parseData(await request(`/api/reception/calls/${id}`, { method: "PATCH", body: JSON.stringify(patch) }));
+}
+
+export async function getSocialPosts(filters = {}) {
+  const params = new URLSearchParams(filters);
+  return parseData(await request(`/api/admin/social/posts${params.size ? `?${params}` : ""}`)) || [];
+}
+
+export async function createSocialPost(payload) {
+  return parseData(await request("/api/admin/social/posts", { method: "POST", body: JSON.stringify(payload) }));
+}
+
+export async function getFollowerObservations() {
+  return parseData(await request("/api/admin/social/followers")) || [];
+}
+
+export async function createFollowerObservation(payload) {
+  return parseData(await request("/api/admin/social/followers", { method: "POST", body: JSON.stringify(payload) }));
+}
+
+export async function previewReport(filters) {
+  const params = new URLSearchParams(filters);
+  return parseData(await request(`/api/admin/reports/preview?${params}`));
+}
+
+export async function generateReport(payload) {
+  return parseData(await request("/api/admin/reports/generate", { method: "POST", body: JSON.stringify(payload) }));
+}
+
+export async function getReportHistory() {
+  return parseData(await request("/api/admin/reports")) || [];
+}
+
+export async function markReportShareOpened(id) {
+  return parseData(await request(`/api/admin/reports/${id}/share-opened`, { method: "POST" }));
+}
+
+export async function downloadReportCsv(filters) {
+  const params = new URLSearchParams(filters);
+  const response = await fetch(`${API_BASE_URL}/api/admin/reports/export.csv?${params}`, { headers: getHeaders() });
+  if (!response.ok) throw new Error("Unable to export this report.");
+  return response.blob();
 }

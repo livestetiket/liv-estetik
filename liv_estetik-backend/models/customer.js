@@ -7,6 +7,7 @@ const customerSchema = new mongoose.Schema(
     fullName: { type: String, required: true, trim: true },
     email: { type: String, trim: true, lowercase: true },
     phone: { type: String, trim: true },
+    normalizedPhone: { type: String, trim: true, index: true, sparse: true },
     age: { type: Number },
     sex: { type: String, trim: true },
     address: { type: String, trim: true },

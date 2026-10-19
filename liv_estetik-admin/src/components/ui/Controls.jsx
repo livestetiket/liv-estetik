@@ -3,8 +3,11 @@ import { FiCheck, FiRefreshCw } from "react-icons/fi";
 export const STATUS_STYLES = {
   pending: "bg-amber-50 text-amber-700 border-amber-200",
   approved: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  arrived: "bg-teal-50 text-teal-700 border-teal-200",
+  in_progress: "bg-indigo-50 text-indigo-700 border-indigo-200",
   rejected: "bg-rose-50 text-rose-700 border-rose-200",
   completed: "bg-sky-50 text-sky-700 border-sky-200",
+  no_show: "bg-rose-50 text-rose-700 border-rose-200",
   cancelled: "bg-stone-100 text-stone-700 border-stone-200",
   canceled: "bg-stone-100 text-stone-700 border-stone-200",
   new: "bg-amber-50 text-amber-700 border-amber-200",
@@ -77,9 +80,9 @@ export function IconButton({ title, icon: Icon, onClick, disabled, tone = "defau
   );
 }
 
-export function Field({ label, children }) {
+export function Field({ label, children, className = "" }) {
   return (
-    <label className="grid gap-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500">
+    <label className={`grid gap-1.5 text-xs font-semibold uppercase tracking-wide text-stone-500 ${className}`}>
       <span>{label}</span>
       {children}
     </label>

@@ -38,5 +38,5 @@ start();
 
 process.on("unhandledRejection", (err) => {
   // eslint-disable-next-line no-console
-  console.error("[server] Unhandled rejection:", err);
+  console.error(`[server] Unhandled rejection (${err?.name || "Error"}).`);
 });

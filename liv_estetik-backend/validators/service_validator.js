@@ -4,7 +4,7 @@ const CATEGORIES = ["Hair", "Skin / Anti-aging", "Body"];
 
 const createServiceSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  category: z.enum(CATEGORIES),
+  category: z.string().trim().min(1).max(80),
   description: z.string().optional(),
   icon: z.string().optional(),
   active: z.boolean().optional().default(true),

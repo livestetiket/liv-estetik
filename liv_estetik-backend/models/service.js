@@ -5,7 +5,7 @@ const CATEGORIES = ["Hair", "Skin / Anti-aging", "Body"];
 const serviceSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    category: { type: String, enum: CATEGORIES, required: true },
+    category: { type: String, required: true, trim: true, maxlength: 80 },
     description: { type: String },
     icon: { type: String },
     active: { type: Boolean, default: true }, // bookable

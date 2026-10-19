@@ -47,7 +47,7 @@ export default function DashboardLayout({ user, navItems, activeView, setActiveV
       </aside>
 
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-10 border-b border-stone-200 bg-[#f7f4ef]/90 px-4 py-3 backdrop-blur lg:px-8">
+        <header className="no-print sticky top-0 z-10 border-b border-stone-200 bg-[#f7f4ef]/90 px-4 py-3 backdrop-blur lg:px-8">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <img src="/image/logo_liv-removebg-preview.png" alt="Liv Estetik" className="h-10 w-auto lg:hidden" />

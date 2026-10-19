@@ -18,11 +18,26 @@ const {
 } = require("../validators/booking_validator");
 
 const router = express.Router();
+const operationsController = require("../controllers/operations_controller");
+const { createPostSchema, createFollowerSchema, generateReportSchema } = require("../validators/activity_validator");
+const { clinicSettingsSchema } = require("../validators/activity_validator");
 
 // All admin routes require an authenticated admin user.
 router.use(requireAuth, requireRole("admin"));
 
 router.get("/dashboard", adminController.getDashboard);
+router.get("/clinic-settings", adminController.getClinicSettings);
+router.put("/clinic-settings", validateBody(clinicSettingsSchema), adminController.updateClinicSettings);
+
+router.get("/social/posts", operationsController.listPosts);
+router.post("/social/posts", validateBody(createPostSchema), operationsController.createPost);
+router.get("/social/followers", operationsController.listFollowers);
+router.post("/social/followers", validateBody(createFollowerSchema), operationsController.createFollower);
+router.get("/reports/preview", operationsController.reportPreview);
+router.post("/reports/generate", validateBody(generateReportSchema), operationsController.generateReport);
+router.get("/reports/export.csv", operationsController.exportReportCsv);
+router.get("/reports", operationsController.listReports);
+router.post("/reports/:id/share-opened", operationsController.markShareOpened);
 
 // Users
 router.get("/users", adminController.listUsers);

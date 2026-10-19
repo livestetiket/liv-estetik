@@ -5,6 +5,7 @@ const Message = require("../models/message");
 const asyncHandler = require("../util/async_handler");
 const { createBookingRequest } = require("../service/booking_service");
 const { findOrCreateCustomer } = require("../service/customer_service");
+const { getClinicSettings, isSlotWithinSettings } = require("../service/clinic_settings_service");
 
 // GET /api/services
 const getServices = asyncHandler(async (_req, res) => {
@@ -39,20 +40,8 @@ const getTimeSlots = asyncHandler(async (req, res) => {
   }
 
   const slots = await TimeSlot.find(filter).sort({ startsAt: 1 }).populate("service", "name");
-  const allowedSlots = slots.filter((slot) => {
-    const slotDate = new Date(slot.startsAt);
-    const dayOfWeek = slotDate.getDay();
-    const hour = slotDate.getHours();
-    const minute = slotDate.getMinutes();
-
-    if (dayOfWeek === 0) return false;
-
-    const isSaturday = dayOfWeek === 6;
-    const withinWeekdayWindow = hour >= 9 && (hour < 17 || (hour === 17 && minute < 30));
-    const withinSaturdayWindow = hour >= 9 && (hour < 12 || (hour === 12 && minute < 30));
-
-    return isSaturday ? withinSaturdayWindow : withinWeekdayWindow;
-  });
+  const settings = await getClinicSettings();
+  const allowedSlots = slots.filter((slot) => slot.status === "available" && slot.bookedCount < slot.capacity && isSlotWithinSettings(slot.startsAt, slot.endsAt, settings));
 
   res.json({ data: allowedSlots });
 });

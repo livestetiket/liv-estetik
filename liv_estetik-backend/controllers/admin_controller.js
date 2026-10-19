@@ -7,12 +7,27 @@ const Booking = require("../models/booking");
 const EmailNotification = require("../models/email_notification");
 const AuditLog = require("../models/audit_log");
 const Message = require("../models/message");
+const ClinicSettings = require("../models/clinic_settings");
 const ApiError = require("../util/api_error");
 const asyncHandler = require("../util/async_handler");
 const { logAction } = require("../service/audit_service");
 const { retryEmailNotification } = require("../service/email_service");
 const { releaseSlot } = require("../service/slot_service");
 const { generateSlotsForNextDays } = require("../service/slot_generator");
+
+const getClinicSettings = asyncHandler(async (_req, res) => {
+  let settings = await ClinicSettings.findOne({ key: "clinic" });
+  if (!settings) settings = await ClinicSettings.create({ key: "clinic" });
+  res.json({ data: settings });
+});
+
+const updateClinicSettings = asyncHandler(async (req, res) => {
+  const settings = await ClinicSettings.findOneAndUpdate(
+    { key: "clinic" }, { $set: req.body }, { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
+  );
+  await logAction({ actor: req.user, action: "clinic.settings_updated", entityType: "ClinicSettings", entityId: settings._id, metadata: { operatingWindowCount: settings.operatingWindows.length, breakCount: settings.breaks.length, blockedDateCount: settings.blockedLocalDates.length } });
+  res.json({ data: settings });
+});
 
 // ---------------------------------------------------------------------------
 // Dashboard
@@ -487,6 +502,8 @@ const listAuditLogs = asyncHandler(async (req, res) => {
 
 module.exports = {
   getDashboard,
+  getClinicSettings,
+  updateClinicSettings,
   listUsers,
   createUser,
   updateUser,

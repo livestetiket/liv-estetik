@@ -3,6 +3,7 @@ const BookingStatusHistory = require("../models/booking_status_history");
 const EmailNotification = require("../models/email_notification");
 const Message = require("../models/message");
 const TimeSlot = require("../models/timeslot");
+const Customer = require("../models/customer");
 const ApiError = require("../util/api_error");
 const asyncHandler = require("../util/async_handler");
 const bookingService = require("../service/booking_service");
@@ -94,6 +95,19 @@ const getBooking = asyncHandler(async (req, res) => {
   res.json({ data: { booking, history, emails } });
 });
 
+const createBooking = asyncHandler(async (req, res) => {
+  const booking = await bookingService.createBookingRequest(req.body, { actor: req.user, source: req.body.source });
+  res.status(201).json({ data: booking });
+});
+
+const lookupPatient = asyncHandler(async (req, res) => {
+  const { normalizePhone } = require("../service/customer_service");
+  const normalizedPhone = normalizePhone(req.query.phone);
+  if (!normalizedPhone) return res.json({ data: null });
+  const customer = await Customer.findOne({ $or: [{ normalizedPhone }, { phone: req.query.phone }] }).select("fullName phone email createdAt").lean();
+  res.json({ data: customer });
+});
+
 // PATCH /api/reception/bookings/:id/approve
 const approveBooking = asyncHandler(async (req, res) => {
   const { message } = req.body;
@@ -131,6 +145,11 @@ const rescheduleBooking = asyncHandler(async (req, res) => {
 // PATCH /api/reception/bookings/:id/complete
 const completeBooking = asyncHandler(async (req, res) => {
   const booking = await bookingService.completeBooking({ bookingId: req.params.id, actor: req.user });
+  res.json({ data: booking });
+});
+
+const updateBookingStatus = asyncHandler(async (req, res) => {
+  const booking = await bookingService.updateBookingStatus({ bookingId: req.params.id, status: req.body.status, actor: req.user });
   res.json({ data: booking });
 });
 
@@ -262,11 +281,14 @@ const unblockSlot = asyncHandler(async (req, res) => {
 module.exports = {
   getDashboard,
   listBookings,
+  createBooking,
+  lookupPatient,
   getBooking,
   approveBooking,
   rejectBooking,
   rescheduleBooking,
   completeBooking,
+  updateBookingStatus,
   cancelBooking,
   addNote,
   listMessages,
