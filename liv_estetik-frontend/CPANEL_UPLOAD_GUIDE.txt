@@ -1,0 +1,8 @@
+﻿Liv Estetik cPanel upload guide
+
+1. Upload liv_estetik-frontend/cpanel-upload.zip to the main domain's document root (usually public_html). Extract the ZIP there so index.html and assets/ are directly in that folder.
+2. Upload liv_estetik-admin/cpanel-upload.zip to the admin subdomain's document root. Extract it there so its index.html and assets/ are directly in that folder.
+3. Do not extract either ZIP into a shared document root; both archives contain an index.html.
+4. Do not upload any .env file or database credentials to a public web folder.
+5. These ZIPs contain the compiled website and dashboard only. Booking and dashboard data still require a working backend API and database. The current Render deployment is failing its MongoDB connection, so those features will remain unavailable until the backend/database is fixed or replaced with a WordPress booking system.
+6. The public site expects the JPEG files listed in public/images/README.txt. They are not included because they have not been supplied yet.
