@@ -7,17 +7,17 @@ export const NAV_LINKS = [
     { label: "Contact", href: "#contact" },
 ];
 export const PHOTO_AREAS = [
-    { title: "Hair restoration", note: "Consultations and treatment preparation", src: "/images/hair-restoration-placeholder.svg", alt: "Illustrated placeholder for an authentic hair restoration consultation photograph", shape: "photo-tall" },
-    { title: "Facial treatments", note: "Treatment room and skincare details", src: "/images/facial-treatment-placeholder.svg", alt: "Illustrated placeholder for an authentic facial treatment photograph", shape: "photo-wide" },
-    { title: "Body treatments", note: "Treatment environment and equipment", src: "/images/body-treatment-placeholder.svg", alt: "Illustrated placeholder for an authentic body treatment room photograph", shape: "photo-square" },
-    { title: "The clinic", note: "Reception and treatment spaces", src: "/images/clinic-gallery-placeholder.svg", alt: "Illustrated placeholder for an authentic Liv Estetik clinic photograph", shape: "photo-wide" },
-    { title: "Our team", note: "Professional portraits and approved biographies", src: "/images/medical-team-placeholder.svg", alt: "Illustrated placeholder for approved Liv Estetik team portraits", shape: "photo-square" },
+    { title: "Hair restoration", note: "Consultations and treatment preparation", src: "/images/hair-treatment.jpg", alt: "Hair restoration consultation at Liv Estetik", shape: "photo-tall" },
+    { title: "Facial treatments", note: "Treatment room and skincare details", src: "/images/facial-treatment.jpg", alt: "Facial treatment at Liv Estetik", shape: "photo-wide" },
+    { title: "Body treatments", note: "Treatment environment and equipment", src: "/images/body-treatment.jpg", alt: "Body treatment room at Liv Estetik", shape: "photo-square" },
+    { title: "The clinic", note: "Reception and treatment spaces", src: "/images/clinic-gallery.jpg", alt: "Reception and treatment spaces at Liv Estetik", shape: "photo-wide" },
+    { title: "Our team", note: "Professional portraits and approved biographies", src: "/images/medical-team.jpg", alt: "Liv Estetik clinical team", shape: "photo-square" },
 ];
 
 export const SERVICE_PHOTOS = {
-    Hair: { src: "/images/hair-restoration-placeholder.svg", alt: "Placeholder for a real hair restoration treatment photograph" },
-    "Skin / Anti-aging": { src: "/images/facial-treatment-placeholder.svg", alt: "Placeholder for a real facial treatment photograph" },
-    Body: { src: "/images/body-treatment-placeholder.svg", alt: "Placeholder for a real body treatment photograph" },
+    Hair: { src: "/images/hair-treatment.jpg", alt: "Hair restoration treatment at Liv Estetik" },
+    "Skin / Anti-aging": { src: "/images/facial-treatment.jpg", alt: "Facial treatment at Liv Estetik" },
+    Body: { src: "/images/body-treatment.jpg", alt: "Body treatment at Liv Estetik" },
 };
 
 export const SOCIALS = [

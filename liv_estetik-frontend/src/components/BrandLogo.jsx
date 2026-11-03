@@ -1,18 +1,5 @@
-import { useState } from "react";
+import brandLogo from "../../image/logo_liv-removebg-preview.png";
 
 export default function BrandLogo({ className = "" }) {
-    const [imageUnavailable, setImageUnavailable] = useState(false);
-
-    if (imageUnavailable) {
-        return <span className={`brand-logo-fallback ${className}`}>Liv Estetik</span>;
-    }
-
-    return (
-        <img
-            className={className}
-            src="/liv-estetik-logo.png"
-            alt="Liv Estetik"
-            onError={() => setImageUnavailable(true)}
-        />
-    );
+    return <img className={`brand-logo ${className}`} src={brandLogo} alt="Liv Estetik · Hair, Skin, Body" />;
 }

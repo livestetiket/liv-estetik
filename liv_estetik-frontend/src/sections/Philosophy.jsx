@@ -7,7 +7,7 @@ export default function Philosophy() {
             <div className="philosophy-grid section-wrap">
                 <figure className="philosophy-visual" data-reveal>
                     <div className="image-frame philosophy-image" data-parallax>
-                        <img src="/images/treatment-room-placeholder.svg" alt="Placeholder for the clinic treatment room" width="900" height="1100" loading="lazy" />
+                        <img src="/images/treatment-room.jpg" alt="Treatment room at Liv Estetik" width="900" height="1100" loading="lazy" />
                     </div>
                     <figcaption>Liv Estetik · Bole, Addis Ababa</figcaption>
                 </figure>
