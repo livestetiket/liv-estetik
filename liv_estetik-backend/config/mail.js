@@ -22,8 +22,15 @@ function buildTransporter() {
     });
   }
 
-  // Fallback "console" transport: does not actually send email.
-  // Useful for local development without email provider credentials.
+  if (env.emailProvider === "smtp") {
+    return { sendMail: async () => { throw new Error("SMTP is selected but SMTP_HOST is not configured."); } };
+  }
+
+  if (env.emailProvider !== "console") {
+    return { sendMail: async () => { throw new Error(`Unsupported email provider "${env.emailProvider}". Use smtp or console.`); } };
+  }
+
+  // Console mode is a development simulation and does not deliver messages.
   return {
     sendMail: async (options) => {
       // eslint-disable-next-line no-console

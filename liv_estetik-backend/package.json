@@ -10,6 +10,8 @@
     "seed": "node seed.js",
     "bootstrap:admin": "node scripts/bootstrap_admin.js",
     "migrate:reporting": "node scripts/backfill_reporting_fields.js",
+    "migrate:patient-cards": "node scripts/backfill_patient_cards.js",
+    "migrate:protect-primary-admin": "node scripts/protect_primary_admin.js",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {

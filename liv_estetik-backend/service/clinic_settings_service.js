@@ -19,8 +19,13 @@ function isSlotWithinSettings(start, end, settings) {
   const endParts = localParts(end);
   const endKey = `${endParts.year}-${String(endParts.month).padStart(2, "0")}-${String(endParts.day).padStart(2, "0")}`;
   const endMinute = endParts.hour * 60 + endParts.minute;
-  if (endKey !== key || settings.blockedLocalDates.includes(key)) return false;
-  const window = settings.operatingWindows.find((item) => item.dayOfWeek === weekday);
+  if (endKey !== key) return false;
+  const exception = (settings.operatingExceptions || []).find((item) => item.localDate === key);
+  if (exception?.closed) return false;
+  if (!exception && settings.blockedLocalDates.includes(key)) return false;
+  const window = exception
+    ? exception
+    : settings.operatingWindows.find((item) => item.dayOfWeek === weekday);
   if (!window || startMinute < window.startMinute || endMinute > window.endMinute) return false;
   return !settings.breaks.some((item) => startMinute < item.endMinute && endMinute > item.startMinute);
 }

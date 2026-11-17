@@ -8,10 +8,6 @@ const { createUserSchema, updateUserSchema, resetPasswordSchema } = require("../
 const { createServiceSchema, updateServiceSchema } = require("../validators/service_validator");
 const { createSlotSchema, updateSlotSchema } = require("../validators/slot_validator");
 const {
-  createTestimonialSchema,
-  updateTestimonialSchema,
-} = require("../validators/content_validator");
-const {
   approveBookingSchema,
   rejectBookingSchema,
   rescheduleBookingSchema,
@@ -19,20 +15,21 @@ const {
 
 const router = express.Router();
 const operationsController = require("../controllers/operations_controller");
-const { createPostSchema, createFollowerSchema, generateReportSchema } = require("../validators/activity_validator");
+const { generateReportSchema } = require("../validators/activity_validator");
 const { clinicSettingsSchema } = require("../validators/activity_validator");
+const roleController = require("../controllers/role_controller");
+const { createRoleSchema, updateRoleSchema } = require("../validators/role_validator");
 
 // All admin routes require an authenticated admin user.
 router.use(requireAuth, requireRole("admin"));
 
 router.get("/dashboard", adminController.getDashboard);
+router.get("/roles", roleController.listRoles);
+router.post("/roles", validateBody(createRoleSchema), roleController.createRole);
+router.patch("/roles/:key", validateBody(updateRoleSchema), roleController.updateRole);
 router.get("/clinic-settings", adminController.getClinicSettings);
 router.put("/clinic-settings", validateBody(clinicSettingsSchema), adminController.updateClinicSettings);
 
-router.get("/social/posts", operationsController.listPosts);
-router.post("/social/posts", validateBody(createPostSchema), operationsController.createPost);
-router.get("/social/followers", operationsController.listFollowers);
-router.post("/social/followers", validateBody(createFollowerSchema), operationsController.createFollower);
 router.get("/reports/preview", operationsController.reportPreview);
 router.post("/reports/generate", validateBody(generateReportSchema), operationsController.generateReport);
 router.get("/reports/export.csv", operationsController.exportReportCsv);
@@ -82,25 +79,12 @@ router.post("/time-slots", validateBody(createSlotSchema), adminController.creat
 router.patch("/time-slots/:id", validateBody(updateSlotSchema), adminController.updateTimeSlot);
 router.delete("/time-slots/:id", adminController.deleteTimeSlot);
 
-// Testimonials
-router.get("/testimonials", adminController.listTestimonials);
-router.post(
-  "/testimonials",
-  validateBody(createTestimonialSchema),
-  adminController.createTestimonial
-);
-router.patch(
-  "/testimonials/:id",
-  validateBody(updateTestimonialSchema),
-  adminController.updateTestimonial
-);
-router.delete("/testimonials/:id", adminController.deleteTestimonial);
-
 // Email notifications
 router.get("/email-notifications", adminController.listEmailNotifications);
 router.patch("/email-notifications/:id/retry", adminController.retryEmail);
 
 // Audit logs
+router.get("/audit-logs/export.csv", requireRole("admin"), adminController.exportAuditLogsCsv);
 router.get("/audit-logs", adminController.listAuditLogs);
 
 module.exports = router;

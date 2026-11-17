@@ -13,7 +13,7 @@ import {
   getBookableServices,
   getAvailableSlots,
   createReceptionBooking,
-  lookupPatient,
+  searchPatientMatches,
   updateBookingStatus,
 } from "../api";
 import { PrimaryButton, SectionShell, IconButton, StatusPill, EmptyState, getServicesLabel, getSlotLabel, Field, TextInput, Select, TextArea } from "../components/ui/Controls";
@@ -30,6 +30,7 @@ export default function Bookings({ role }) {
   const [slots, setSlots] = useState([]);
   const [newBooking, setNewBooking] = useState({ fullName: "", phone: "", email: "", service: "", requestedSlot: "", source: "phone", notes: "" });
   const [duplicatePatient, setDuplicatePatient] = useState(null);
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [serviceFilter, setServiceFilter] = useState("");
@@ -106,16 +107,21 @@ export default function Bookings({ role }) {
   const saveNewBooking = async (event) => {
     event.preventDefault(); setError("");
     try {
-      await createReceptionBooking({ ...newBooking, email: newBooking.email || undefined, notes: newBooking.notes || undefined });
+      await createReceptionBooking({ ...newBooking, customerId: selectedPatient?.id || selectedPatient?._id, registerNewPatient: !selectedPatient, email: newBooking.email || undefined, notes: newBooking.notes || undefined });
       setNewBooking({ fullName: "", phone: "", email: "", service: "", requestedSlot: "", source: "phone", notes: "" });
-      setDuplicatePatient(null); setShowCreate(false); await load();
+      setDuplicatePatient(null); setSelectedPatient(null); setShowCreate(false); await load();
     } catch (err) { setError(err.message || "Unable to create booking."); }
   };
 
   const checkDuplicatePatient = async () => {
-    if (newBooking.phone.trim().length < 7) return;
-    try { setDuplicatePatient(await lookupPatient(newBooking.phone)); }
-    catch { setDuplicatePatient(null); }
+    if (newBooking.phone.trim().length < 7 && !newBooking.email.trim()) { setDuplicatePatient(null); return; }
+    try { setDuplicatePatient(await searchPatientMatches(newBooking.phone, newBooking.email)); }
+    catch { setDuplicatePatient([]); }
+  };
+
+  const selectPatient = (patient) => {
+    setSelectedPatient(patient);
+    setNewBooking((current) => ({ ...current, fullName: patient.fullName, phone: patient.phone || current.phone, email: patient.email || current.email }));
   };
 
   const setAppointmentStatus = async (booking, status) => {
@@ -175,14 +181,16 @@ export default function Bookings({ role }) {
     <SectionShell title="Bookings" subtitle="Create and manage appointments, with each change recorded in the booking history." action={<div className="flex gap-2"><PrimaryButton icon={FiPlus} onClick={() => setShowCreate((value) => !value)}>{showCreate ? "Close form" : "New booking"}</PrimaryButton><PrimaryButton icon={FiRefreshCw} onClick={load}>{loading ? "Refreshing..." : "Refresh"}</PrimaryButton></div>}>
       {error ? <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
       {showCreate ? <form onSubmit={saveNewBooking} className="mb-4 grid gap-3 rounded-lg border border-stone-200 bg-white p-4 md:grid-cols-2 xl:grid-cols-4">
-        <Field label="Patient name"><TextInput value={newBooking.fullName} onChange={(e) => setNewBooking({ ...newBooking, fullName: e.target.value })} required minLength={2} /></Field>
-        <Field label="Phone"><TextInput type="tel" value={newBooking.phone} onBlur={checkDuplicatePatient} onChange={(e) => setNewBooking({ ...newBooking, phone: e.target.value })} required minLength={7} /></Field>
-        <Field label="Email (optional)"><TextInput type="email" value={newBooking.email} onChange={(e) => setNewBooking({ ...newBooking, email: e.target.value })} /></Field>
+        <Field label="Patient name"><TextInput value={newBooking.fullName} onChange={(e) => { setSelectedPatient(null); setNewBooking({ ...newBooking, fullName: e.target.value }); }} required minLength={2} /></Field>
+        <Field label="Phone"><TextInput type="tel" value={newBooking.phone} onBlur={checkDuplicatePatient} onChange={(e) => { setSelectedPatient(null); setNewBooking({ ...newBooking, phone: e.target.value }); }} required minLength={7} /></Field>
+        <Field label="Email (optional)"><TextInput type="email" value={newBooking.email} onBlur={checkDuplicatePatient} onChange={(e) => { setSelectedPatient(null); setNewBooking({ ...newBooking, email: e.target.value }); }} /></Field>
         <Field label="Booking source"><Select value={newBooking.source} onChange={(e) => setNewBooking({ ...newBooking, source: e.target.value })}><option value="phone">Phone call</option><option value="whatsapp">WhatsApp</option><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="walk_in">Walk-in</option><option value="referral">Referral</option><option value="other">Other</option></Select></Field>
         <Field label="Service"><Select value={newBooking.service} onChange={(e) => setNewBooking({ ...newBooking, service: e.target.value, requestedSlot: "" })} required><option value="">Choose a service</option>{services.map((service) => <option key={service.id || service._id} value={service.id || service._id}>{service.name} · {service.category}</option>)}</Select></Field>
         <Field label="Available appointment time"><Select value={newBooking.requestedSlot} onChange={(e) => setNewBooking({ ...newBooking, requestedSlot: e.target.value })} required disabled={!newBooking.service}><option value="">Choose a time</option>{slots.map((slot) => <option key={slot.id || slot._id} value={slot.id || slot._id}>{new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Africa/Addis_Ababa" }).format(new Date(slot.startsAt))} EAT</option>)}</Select></Field>
         <Field label="Booking notes (optional)" className="md:col-span-2"><TextArea rows={2} value={newBooking.notes} onChange={(e) => setNewBooking({ ...newBooking, notes: e.target.value })} maxLength={2000} /></Field>
-        {duplicatePatient ? <p className="rounded bg-amber-50 p-3 text-sm text-amber-900 md:col-span-2 xl:col-span-4">Existing patient found: <strong>{duplicatePatient.fullName}</strong>{duplicatePatient.email ? ` · ${duplicatePatient.email}` : ""}. Saving with this phone will link the booking to that patient record.</p> : null}
+        {selectedPatient ? <div className="rounded bg-emerald-50 p-3 text-sm text-emerald-900 md:col-span-2 xl:col-span-4">Linked to <strong>{selectedPatient.fullName}</strong> · {selectedPatient.cardNumber || "Card number unavailable"}<button type="button" className="ml-3 underline" onClick={() => setSelectedPatient(null)}>Register as a new patient instead</button></div> : null}
+        {!selectedPatient && duplicatePatient?.length ? <div className="grid gap-2 rounded bg-amber-50 p-3 text-sm text-amber-950 md:col-span-2 xl:col-span-4"><p>Possible matches. Select the correct patient record, or continue to register a new patient.</p>{duplicatePatient.map((patient) => <button type="button" key={patient.id || patient._id} className="flex flex-wrap justify-between gap-2 rounded border border-amber-200 bg-white px-3 py-2 text-left" onClick={() => selectPatient(patient)}><span><strong>{patient.fullName}</strong>{patient.phone ? ` · ${patient.phone}` : ""}{patient.email ? ` · ${patient.email}` : ""}</span><span className="font-semibold">{patient.cardNumber || "Select"}</span></button>)}</div> : null}
+        {!selectedPatient && duplicatePatient && duplicatePatient.length === 0 ? <p className="rounded bg-stone-50 p-3 text-sm text-stone-600 md:col-span-2 xl:col-span-4">No matching patient was found. A new patient record and card number will be created with this booking.</p> : null}
         <div className="self-end"><PrimaryButton type="submit" icon={FiPlus}>Create appointment request</PrimaryButton></div>
       </form> : null}
       <div className="mb-3 grid gap-2 sm:grid-cols-[1fr_12rem]"><TextInput aria-label="Search patients and services" placeholder="Search patient, phone, email, service…" value={query} onChange={(e) => setQuery(e.target.value)} /><Select aria-label="Filter by status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="">All statuses</option>{["pending", "approved", "arrived", "in_progress", "rescheduled", "completed", "cancelled", "no_show", "rejected"].map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</Select></div>
@@ -207,6 +215,7 @@ export default function Bookings({ role }) {
               <p className="mt-2 font-semibold text-evergreen-950">{selectedBooking.fullName || selectedBooking.name || "Unnamed client"}</p>
               <p className="text-sm text-stone-600">{selectedBooking.email || "No email"}</p>
               <p className="text-sm text-stone-600">{selectedBooking.phone || "No phone"}</p>
+              {selectedBooking.customer?.cardNumber ? <p className="mt-1 text-sm font-semibold text-champagne-800">Patient card: {selectedBooking.customer.cardNumber}</p> : null}
               {selectedBooking.age && <p className="text-sm text-stone-600">Age: {selectedBooking.age}</p>}
             </div>
             <div className="rounded-lg border border-stone-100 bg-stone-50 p-4">
@@ -246,7 +255,6 @@ export default function Bookings({ role }) {
                 {["approved", "rescheduled"].includes(booking.status) ? <IconButton title="Mark arrived" icon={FiUserCheck} disabled={busyId === `${booking.id || booking._id}:arrived`} onClick={() => setAppointmentStatus(booking, "arrived")} /> : null}
                 {booking.status === "arrived" ? <IconButton title="Start consultation" icon={FiPlay} disabled={busyId === `${booking.id || booking._id}:in_progress`} onClick={() => setAppointmentStatus(booking, "in_progress")} /> : null}
                 {["approved", "rescheduled", "arrived", "in_progress"].includes(booking.status) ? <IconButton title="Complete" icon={FiCheck} disabled={busyId === `${booking.id || booking._id}:complete`} onClick={() => booking.status === "in_progress" || booking.status === "arrived" ? setAppointmentStatus(booking, "completed") : act(booking, "complete")} /> : null}
-                {["approved", "rescheduled", "arrived"].includes(booking.status) ? <button type="button" disabled={Boolean(busyId)} className="rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 disabled:opacity-50" onClick={() => setAppointmentStatus(booking, "no_show")}>No-show</button> : null}
                 {["pending", "approved", "reschedule_requested", "rescheduled", "arrived"].includes(booking.status) ? <IconButton title="Cancel" icon={FiX} tone="danger" disabled={busyId === `${booking.id || booking._id}:cancel`} onClick={() => act(booking, "cancel")} /> : null}
                 {(role === "reception" || role === "admin") ? <IconButton title="Internal note" icon={FiEdit3} disabled={busyId === `${booking.id || booking._id}:note`} onClick={() => act(booking, "note")} /> : null}
                 {role === "admin" ? <IconButton title="Delete" icon={FiTrash2} tone="danger" disabled={busyId === `${booking.id || booking._id}:delete`} onClick={() => act(booking, "delete")} /> : null}

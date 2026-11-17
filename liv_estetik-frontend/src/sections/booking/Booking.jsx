@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { FadeUp } from "../../components.jsx";
 import { getServices, getTimeSlots, postBooking } from "../../api";
 import useRemoteResource from "../../hooks/useRemoteResource";
@@ -50,6 +50,22 @@ export default function Booking() {
         isWakingUp: servicesWakingUp,
         retry: retryServices,
     } = useRemoteResource(loadServices);
+
+    useEffect(() => {
+        const selectService = (serviceId) => {
+            const match = services.find((service) => String(service._id || service.id) === String(serviceId) && service.active && !service.isComingSoon && !service.comingSoon);
+            if (!match) return false;
+            setSelectedService(String(match._id || match.id));
+            setSelectedSlot(null);
+            setStep(2);
+            return true;
+        };
+        const pending = sessionStorage.getItem("liv-estetik-selected-service");
+        if (pending && selectService(pending)) sessionStorage.removeItem("liv-estetik-selected-service");
+        const onSelect = (event) => selectService(event.detail?.serviceId);
+        window.addEventListener("liv-estetik:select-service", onSelect);
+        return () => window.removeEventListener("liv-estetik:select-service", onSelect);
+    }, [services]);
     const loadSlots = useCallback(() => {
         const now = new Date();
         const later = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);

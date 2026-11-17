@@ -23,10 +23,12 @@ async function bootstrapAdmin() {
       passwordHash,
       role: "admin",
       active: true,
+      isPrimaryAdmin: true,
     });
   } else {
     admin.passwordHash = passwordHash;
     admin.active = true;
+    admin.isPrimaryAdmin = true;
   }
 
   await admin.save();

@@ -26,7 +26,7 @@ export default function Emails() {
 
   const retry = async (row) => {
     try {
-      await retryEmailNotification(row.id);
+      await retryEmailNotification(row.id || row._id);
       await load();
     } catch (err) {
       alert(err.message);
@@ -34,7 +34,7 @@ export default function Emails() {
   };
 
   return (
-    <SectionShell title="Email Notifications" subtitle="Inspect outgoing email jobs and retry failed deliveries." action={<PrimaryButton icon={FiRefreshCw} onClick={load}>{loading ? "Refreshing..." : "Refresh"}</PrimaryButton>}>
+    <SectionShell title="Email Notifications" subtitle="Inspect email attempts. Sent means accepted by the configured provider; delivery is confirmed only when the provider reports it." action={<PrimaryButton icon={FiRefreshCw} onClick={load}>{loading ? "Refreshing..." : "Refresh"}</PrimaryButton>}>
       {error ? <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
       <div className="overflow-hidden rounded-lg border border-stone-200 bg-white">
         {rows.length === 0 && !loading ? <EmptyState title="No notifications" body="Email jobs will appear here in demo mode." /> : null}
@@ -42,10 +42,12 @@ export default function Emails() {
           <div key={row.id} className="grid gap-3 border-b border-stone-100 p-4 last:border-b-0 md:grid-cols-[1fr_auto_auto] md:items-center">
             <div>
               <p className="font-semibold text-evergreen-950">{row.subject || "Email notification"}</p>
-              <p className="text-sm text-stone-500">{row.to}</p>
+              <p className="text-sm text-stone-500">{row.to} · {row.template?.replaceAll("_", " ")}</p>
+              <p className="text-xs text-stone-400">Attempts: {row.attempts || 0}{row.providerMessageId ? ` · Provider reference: ${row.providerMessageId}` : ""}</p>
+              {row.error ? <p className="mt-1 text-xs text-rose-700">{row.error}</p> : null}
             </div>
             <StatusPill value={row.status} />
-            <IconButton title="Retry" icon={FiRefreshCw} onClick={() => retry(row)} />
+            {row.status === "failed" ? <IconButton title="Retry failed email" icon={FiRefreshCw} onClick={() => retry(row)} /> : null}
           </div>
         ))}
       </div>

@@ -12,6 +12,14 @@ const breakSchema = new mongoose.Schema({
   endMinute: { type: Number, min: 1, max: 1440, required: true },
 }, { _id: false });
 
+const operatingExceptionSchema = new mongoose.Schema({
+  localDate: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
+  label: { type: String, trim: true, maxlength: 80 },
+  closed: { type: Boolean, default: false },
+  startMinute: { type: Number, min: 0, max: 1439 },
+  endMinute: { type: Number, min: 1, max: 1440 },
+}, { _id: false });
+
 const clinicSettingsSchema = new mongoose.Schema({
   key: { type: String, required: true, unique: true, default: "clinic" },
   timezone: { type: String, required: true, default: "Africa/Addis_Ababa", immutable: true },
@@ -25,6 +33,7 @@ const clinicSettingsSchema = new mongoose.Schema({
   ] },
   breaks: { type: [breakSchema], default: [] },
   blockedLocalDates: { type: [String], default: [] },
+  operatingExceptions: { type: [operatingExceptionSchema], default: [] },
   reportSchedulesEnabled: { type: Boolean, default: false },
   reportDailyTime: { type: String, default: "20:00" },
   reportWeeklyDay: { type: Number, min: 0, max: 6, default: 0 },

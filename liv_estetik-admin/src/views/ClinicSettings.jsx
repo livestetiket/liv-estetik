@@ -12,8 +12,10 @@ export default function ClinicSettings() {
   const [windows, setWindows] = useState(DEFAULT_WINDOWS);
   const [breaks, setBreaks] = useState([]);
   const [blockedDates, setBlockedDates] = useState([]);
+  const [exceptions, setExceptions] = useState([]);
   const [reportSettings, setReportSettings] = useState({ reportSchedulesEnabled: false, reportDailyTime: "20:00", reportWeeklyDay: 0, reportWeeklyTime: "20:00", reportMonthlyTime: "20:00" });
   const [blockedDate, setBlockedDate] = useState("");
+  const [exceptionForm, setExceptionForm] = useState({ localDate: "", label: "Holiday", closed: true, startTime: "09:00", endTime: "17:00" });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -21,7 +23,7 @@ export default function ClinicSettings() {
 
   const load = useCallback(async () => {
     setLoading(true); setError("");
-    try { const data = await getClinicSettings(); setWindows(data.operatingWindows || []); setBreaks(data.breaks || []); setBlockedDates(data.blockedLocalDates || []); setReportSettings({ reportSchedulesEnabled: Boolean(data.reportSchedulesEnabled), reportDailyTime: data.reportDailyTime || "20:00", reportWeeklyDay: data.reportWeeklyDay ?? 0, reportWeeklyTime: data.reportWeeklyTime || "20:00", reportMonthlyTime: data.reportMonthlyTime || "20:00" }); }
+    try { const data = await getClinicSettings(); setWindows(data.operatingWindows || []); setBreaks(data.breaks || []); setBlockedDates(data.blockedLocalDates || []); setExceptions(data.operatingExceptions || []); setReportSettings({ reportSchedulesEnabled: Boolean(data.reportSchedulesEnabled), reportDailyTime: data.reportDailyTime || "20:00", reportWeeklyDay: data.reportWeeklyDay ?? 0, reportWeeklyTime: data.reportWeeklyTime || "20:00", reportMonthlyTime: data.reportMonthlyTime || "20:00" }); }
     catch (err) { setError(err.message || "Unable to load clinic settings."); }
     finally { setLoading(false); }
   }, []);
@@ -37,12 +39,19 @@ export default function ClinicSettings() {
 
   const save = async (event) => {
     event.preventDefault(); setSaving(true); setError(""); setNotice("");
-    try { await updateClinicSettings({ operatingWindows: windows, breaks, blockedLocalDates: blockedDates, ...reportSettings }); setNotice("Clinic schedule and report schedule saved. New availability uses these settings; scheduled reports require the hosting cron job to be configured."); }
+    try { await updateClinicSettings({ operatingWindows: windows, breaks, blockedLocalDates: blockedDates, operatingExceptions: exceptions, ...reportSettings }); setNotice("Clinic schedule and report schedule saved. New availability uses these settings; scheduled reports require the hosting cron job to be configured."); }
     catch (err) { setError(err.message || "Unable to save clinic settings."); }
     finally { setSaving(false); }
   };
 
   const addBlockedDate = () => { if (blockedDate && !blockedDates.includes(blockedDate)) setBlockedDates([...blockedDates, blockedDate].sort()); setBlockedDate(""); };
+  const addException = () => {
+    if (!exceptionForm.localDate || exceptions.some((item) => item.localDate === exceptionForm.localDate)) return;
+    const exception = { localDate: exceptionForm.localDate, label: exceptionForm.label.trim() || undefined, closed: exceptionForm.closed };
+    if (!exception.closed) { exception.startMinute = toMinutes(exceptionForm.startTime); exception.endMinute = toMinutes(exceptionForm.endTime); }
+    setExceptions([...exceptions, exception].sort((a, b) => a.localDate.localeCompare(b.localDate)));
+    setExceptionForm({ ...exceptionForm, localDate: "" });
+  };
 
   return <SectionShell title="Clinic settings" subtitle="Manage bookable hours and planned closures. Times and report periods use Africa/Addis_Ababa (EAT)." action={<PrimaryButton icon={FiRefreshCw} onClick={load}>{loading ? "Loading…" : "Refresh"}</PrimaryButton>}>
     {error ? <p role="alert" className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
@@ -56,6 +65,9 @@ export default function ClinicSettings() {
       </section>
       <section className="rounded-lg border border-stone-200 bg-white p-4"><h2 className="font-display text-xl font-semibold text-evergreen-950">Closed dates</h2><p className="mb-3 mt-1 text-sm text-stone-500">Exclude full local calendar dates from public appointment availability.</p><div className="flex flex-wrap items-end gap-2"><Field label="Add closed date"><TextInput type="date" value={blockedDate} onChange={(e) => setBlockedDate(e.target.value)} /></Field><button type="button" className="inline-flex items-center gap-2 rounded-md border border-stone-200 px-3 py-2 text-sm font-semibold" onClick={addBlockedDate}><FiPlus />Add date</button></div>
         {!blockedDates.length ? <p className="mt-3 text-sm text-stone-400">No closed dates saved.</p> : <div className="mt-3 flex flex-wrap gap-2">{blockedDates.map((date) => <span key={date} className="inline-flex items-center gap-2 rounded border border-stone-200 px-3 py-2 text-sm">{date}<button type="button" aria-label={`Remove ${date}`} onClick={() => setBlockedDates(blockedDates.filter((item) => item !== date))}>×</button></span>)}</div>}
+      </section>
+      <section className="rounded-lg border border-stone-200 bg-white p-4"><h2 className="font-display text-xl font-semibold text-evergreen-950">Special hours and holidays</h2><p className="mb-3 mt-1 text-sm text-stone-500">Override the weekly schedule for a specific local date. A special date takes precedence over regular hours.</p><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5"><Field label="Date"><TextInput type="date" value={exceptionForm.localDate} onChange={(e) => setExceptionForm({ ...exceptionForm, localDate: e.target.value })} /></Field><Field label="Label"><TextInput value={exceptionForm.label} maxLength={80} onChange={(e) => setExceptionForm({ ...exceptionForm, label: e.target.value })} /></Field><label className="flex items-center gap-2 self-end pb-2 text-sm"><input type="checkbox" checked={exceptionForm.closed} onChange={(e) => setExceptionForm({ ...exceptionForm, closed: e.target.checked })} />Closed all day</label>{!exceptionForm.closed ? <><Field label="Opens"><TextInput type="time" value={exceptionForm.startTime} onChange={(e) => setExceptionForm({ ...exceptionForm, startTime: e.target.value })} /></Field><Field label="Closes"><TextInput type="time" value={exceptionForm.endTime} onChange={(e) => setExceptionForm({ ...exceptionForm, endTime: e.target.value })} /></Field></> : null}</div><button type="button" className="mt-3 inline-flex items-center gap-2 rounded-md border border-stone-200 px-3 py-2 text-sm font-semibold" onClick={addException}><FiPlus />Add special date</button>
+        {!exceptions.length ? <p className="mt-3 text-sm text-stone-400">No special hours or holidays saved.</p> : <div className="mt-3 grid gap-2">{exceptions.map((item) => <div key={item.localDate} className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-100 pt-2 text-sm"><span><strong>{item.localDate}</strong>{item.label ? ` · ${item.label}` : ""} — {item.closed ? "Closed" : `${toTime(item.startMinute)}–${toTime(item.endMinute)}`}</span><IconButton title="Remove special date" icon={FiTrash2} tone="danger" onClick={() => setExceptions(exceptions.filter((row) => row.localDate !== item.localDate))} /></div>)}</div>}
       </section>
       <section className="rounded-lg border border-stone-200 bg-white p-4"><h2 className="font-display text-xl font-semibold text-evergreen-950">Report schedule</h2><p className="mb-3 mt-1 text-sm text-stone-500">All times are Addis Ababa time. Scheduled delivery is disabled until the cPanel cron trigger is configured.</p>
         <label className="mb-4 flex items-center gap-2 text-sm font-semibold text-evergreen-950"><input type="checkbox" checked={reportSettings.reportSchedulesEnabled} onChange={(e) => setReportSettings({ ...reportSettings, reportSchedulesEnabled: e.target.checked })} />Enable scheduled report generation</label>

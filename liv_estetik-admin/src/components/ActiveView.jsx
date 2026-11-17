@@ -9,14 +9,19 @@ import AuditLogs from "../views/AuditLogs";
 import Emails from "../views/Emails";
 import AccountSettings from "../views/AccountSettings";
 import Calls from "../views/Calls";
-import SocialActivity from "../views/SocialActivity";
 import Reports from "../views/Reports";
 import ClinicSettings from "../views/ClinicSettings";
+import Visits from "../views/Visits";
+import Patients from "../views/Patients";
+import Roles from "../views/Roles";
 
 const VIEW_MAP = {
   overview: Overview,
   bookings: Bookings,
   calls: Calls,
+  visits: Visits,
+  patients: Patients,
+  roles: Roles,
   messages: Messages,
   slots: TimeSlots,
   users: Users,
@@ -24,7 +29,6 @@ const VIEW_MAP = {
   testimonials: Testimonials,
   emails: Emails,
   audit: AuditLogs,
-  social: SocialActivity,
   reports: Reports,
   settings: ClinicSettings,
   account: AccountSettings,

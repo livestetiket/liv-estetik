@@ -9,6 +9,7 @@ const router = express.Router();
 
 router.get("/services", publicController.getServices);
 router.get("/testimonials", publicController.getTestimonials);
+router.get("/clinic-hours", publicController.getClinicHours);
 router.get("/time-slots", publicController.getTimeSlots);
 
 router.post(

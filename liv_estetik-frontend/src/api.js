@@ -24,6 +24,11 @@ export async function getTestimonials() {
   return res?.data || [];
 }
 
+export async function getClinicHours() {
+  const res = await request(`/clinic-hours`);
+  return res?.data || null;
+}
+
 export async function getTimeSlots(from, to, serviceIds) {
   const qs = [];
   if (from) qs.push(`from=${encodeURIComponent(from)}`);
@@ -52,4 +57,4 @@ export async function postMessage(data) {
   });
 }
 
-export default { getServices, getTestimonials, postBooking, postMessage };
+export default { getServices, getTestimonials, getClinicHours, postBooking, postMessage };

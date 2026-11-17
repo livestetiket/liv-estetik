@@ -103,9 +103,14 @@ async function seed() {
       passwordHash,
       role: "admin",
       active: true,
+      isPrimaryAdmin: true,
     });
     console.log(`[seed] Created admin user: ${env.adminEmail}`);
   } else {
+    if (!existingAdmin.isPrimaryAdmin) {
+      existingAdmin.isPrimaryAdmin = true;
+      await existingAdmin.save();
+    }
     console.log("[seed] Admin user already exists, skipping.");
   }
 

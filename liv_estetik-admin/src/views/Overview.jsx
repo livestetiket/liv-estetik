@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { FiActivity, FiRefreshCw } from "react-icons/fi";
+import { FiAlertCircle, FiCalendar, FiMail, FiMessageSquare, FiRefreshCw, FiUsers } from "react-icons/fi";
 import { getDashboardSummary } from "../api";
 import { PrimaryButton, SectionShell, EmptyState } from "../components/ui/Controls";
 
@@ -17,8 +17,23 @@ const SUMMARY_LABELS = {
   newContactMessages: "New contact messages",
 };
 
+const SUMMARY_ICONS = {
+  totalUsers: FiUsers,
+  totalServices: FiCalendar,
+  pendingBookings: FiAlertCircle,
+  approvedBookings: FiCalendar,
+  failedEmails: FiMail,
+  newMessages: FiMessageSquare,
+  pendingBookingRequests: FiAlertCircle,
+  approvedAppointmentsToday: FiCalendar,
+  rejectedRequestsThisWeek: FiCalendar,
+  rescheduledRequests: FiCalendar,
+  newContactMessages: FiMessageSquare,
+};
+
 const NAV_TARGETS = {
   messages: "messages",
+  newMessages: "messages",
   pendingBookings: "bookings",
   approvedBookings: "bookings",
   pendingBookingRequests: "bookings",
@@ -51,39 +66,71 @@ export default function Overview({ role, setActiveView }) {
   }, [load]);
 
   const statEntries = Object.entries(summary).filter(([key]) => SUMMARY_LABELS[key]);
+  const attentionItems = [
+    { key: "pendingBookings", label: "Booking requests need review", view: "bookings" },
+    { key: "pendingBookingRequests", label: "Booking requests need review", view: "bookings" },
+    { key: "failedEmails", label: "Email deliveries need attention", view: "emails" },
+    { key: "newMessages", label: "New messages are waiting", view: "messages" },
+    { key: "newContactMessages", label: "New messages are waiting", view: "messages" },
+    { key: "rescheduledRequests", label: "Reschedule requests need review", view: "bookings" },
+  ].filter((item) => Number(summary[item.key]) > 0);
 
   return (
     <SectionShell
       title={`${role === "admin" ? "Admin" : "Reception"} Overview`}
-      subtitle="A quick pulse of bookings, messages, and staff activity."
+      subtitle="Current operational totals from your clinic workspace."
       action={<PrimaryButton icon={FiRefreshCw} onClick={load}>{loading ? "Refreshing..." : "Refresh"}</PrimaryButton>}
     >
       {error ? <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {statEntries.length ? statEntries.map(([key, value]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setActiveView(NAV_TARGETS[key] || "overview")}
-            className="rounded-lg border border-stone-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{SUMMARY_LABELS[key]}</p>
-            <p className="mt-3 font-display text-4xl font-semibold text-evergreen-950">{value}</p>
-          </button>
-        )) : (
-          [
-            ["Pending items", "-"],
-            ["Messages", "-"],
-            ["Slots", "-"],
-            ["Staff", "-"],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-lg border border-stone-200 bg-white p-5 text-left shadow-sm">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-stone-400">{label}</p>
-              <p className="mt-3 font-display text-4xl font-semibold text-evergreen-950">{value}</p>
-            </div>
-          ))
+      {statEntries.length ? <div className="overview-metrics grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {statEntries.map(([key, value]) => {
+          const Icon = SUMMARY_ICONS[key] || FiCalendar;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setActiveView(NAV_TARGETS[key] || (key === "totalUsers" ? "users" : key === "totalServices" ? "services" : "overview"))}
+              className="overview-metric"
+            >
+              <span className="overview-metric-icon"><Icon aria-hidden="true" /></span>
+              <span className="overview-metric-copy">
+                <span>{SUMMARY_LABELS[key]}</span>
+                <strong>{typeof value === "number" ? new Intl.NumberFormat().format(value) : value}</strong>
+              </span>
+              <span className="overview-metric-arrow" aria-hidden="true">→</span>
+            </button>
+          );
+        })}
+      </div> : null}
+      {!statEntries.length && !loading ? (
+        <EmptyState title="Overview data unavailable" body="The dashboard did not return operational totals. Refresh to try again." />
+      ) : null}
+      {loading && !statEntries.length ? (
+        <p className="rounded-md border border-stone-200 bg-white px-4 py-3 text-sm text-stone-500" role="status">Loading current clinic totals…</p>
+      ) : null}
+      <section className="overview-attention rounded-lg border border-stone-200 bg-white">
+        <div className="overview-panel-heading">
+          <div>
+            <p className="overview-section-kicker">Follow-up</p>
+            <h2>Items to review</h2>
+          </div>
+          <span>Based on current totals</span>
+        </div>
+        {attentionItems.length ? (
+          <div className="overview-attention-list">
+            {attentionItems.map((item) => (
+              <button key={item.key} type="button" onClick={() => setActiveView(item.view)}>
+                <span className="overview-attention-indicator" aria-hidden="true" />
+                <span>{item.label}</span>
+                <strong>{new Intl.NumberFormat().format(Number(summary[item.key]))}</strong>
+                <span aria-hidden="true">→</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="overview-attention-empty">No outstanding items are reported right now.</p>
         )}
-      </div>
+      </section>
     </SectionShell>
   );
 }

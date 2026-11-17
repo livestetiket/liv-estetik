@@ -6,6 +6,9 @@ const asyncHandler = require("../util/async_handler");
 const { createBookingRequest } = require("../service/booking_service");
 const { findOrCreateCustomer } = require("../service/customer_service");
 const { getClinicSettings, isSlotWithinSettings } = require("../service/clinic_settings_service");
+const { notifyRoles } = require("../service/notification_service");
+const ClinicSettings = require("../models/clinic_settings");
+const { logAction } = require("../service/audit_service");
 
 // GET /api/services
 const getServices = asyncHandler(async (_req, res) => {
@@ -17,6 +20,11 @@ const getServices = asyncHandler(async (_req, res) => {
 const getTestimonials = asyncHandler(async (_req, res) => {
   const testimonials = await Testimonial.find({ active: true }).sort({ sortOrder: 1 });
   res.json({ data: testimonials });
+});
+
+const getClinicHours = asyncHandler(async (_req, res) => {
+  const settings = await getClinicSettings();
+  res.json({ data: { timezone: settings.timezone, operatingWindows: settings.operatingWindows, blockedLocalDates: settings.blockedLocalDates, operatingExceptions: settings.operatingExceptions } });
 });
 
 // GET /api/time-slots?from=&to=&serviceIds=...
@@ -48,7 +56,7 @@ const getTimeSlots = asyncHandler(async (req, res) => {
 
 // POST /api/bookings
 const createBooking = asyncHandler(async (req, res) => {
-  const booking = await createBookingRequest(req.body);
+  const booking = await createBookingRequest(req.body, { requestId: req.requestId });
   res.status(201).json({
     message: "Booking request received. Our team will review it shortly.",
     data: {
@@ -76,10 +84,13 @@ const createMessage = asyncHandler(async (req, res) => {
     status: "new",
   });
 
+  await notifyRoles({ eventKey: `message.created:${created._id}`, eventType: "message.created", title: "New patient message", message: `A new message was received from ${name}.`, entityType: "Message", entityId: created._id });
+  await logAction({ actor: { name: "Website visitor", role: "public", requestId: req.requestId }, action: "message.received", entityType: "Message", entityId: created._id });
+
   res.status(201).json({
     message: "Your message has been received. We'll get back to you soon.",
     data: { _id: created._id },
   });
 });
 
-module.exports = { getServices, getTestimonials, getTimeSlots, createBooking, createMessage };
+module.exports = { getServices, getTestimonials, getClinicHours, getTimeSlots, createBooking, createMessage };

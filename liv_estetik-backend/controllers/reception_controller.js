@@ -59,6 +59,7 @@ const listBookings = asyncHandler(async (req, res) => {
 
   const [bookings, total] = await Promise.all([
     Booking.find(filter)
+      .populate("customer", "cardNumber")
       .populate("service", "name category")
       .populate("assignedTo", "name")
       .sort({ createdAt: -1 })
@@ -73,6 +74,7 @@ const listBookings = asyncHandler(async (req, res) => {
 // GET /api/reception/bookings/:id
 const getBooking = asyncHandler(async (req, res) => {
   const booking = await Booking.findById(req.params.id)
+    .populate("customer", "cardNumber")
     .populate("service", "name category")
     .populate("assignedTo", "name")
     .populate("approvedBy", "name")
@@ -104,7 +106,7 @@ const lookupPatient = asyncHandler(async (req, res) => {
   const { normalizePhone } = require("../service/customer_service");
   const normalizedPhone = normalizePhone(req.query.phone);
   if (!normalizedPhone) return res.json({ data: null });
-  const customer = await Customer.findOne({ $or: [{ normalizedPhone }, { phone: req.query.phone }] }).select("fullName phone email createdAt").lean();
+  const customer = await Customer.findOne({ $or: [{ normalizedPhone }, { phone: req.query.phone }] }).select("fullName phone email cardNumber createdAt").lean();
   res.json({ data: customer });
 });
 
@@ -175,9 +177,12 @@ const addNote = asyncHandler(async (req, res) => {
 
 function respondWithEmailWarning(res, { booking, emailRecord }) {
   const payload = { data: booking };
-  if (emailRecord.status === "failed") {
-    payload.warning = "The status was updated, but the notification email failed to send.";
-    payload.emailError = emailRecord.error;
+  if (!["sent", "skipped"].includes(emailRecord.status)) {
+    payload.warning = emailRecord.status === "simulated"
+      ? "The status was updated, but email is in console simulation mode and was not delivered."
+      : "The status was updated, but the notification email was not accepted by the provider.";
+    payload.emailStatus = emailRecord.status;
+    if (emailRecord.status === "failed") payload.emailError = emailRecord.error;
   }
   res.json(payload);
 }

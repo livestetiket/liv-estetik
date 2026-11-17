@@ -23,6 +23,8 @@ const createReceptionBookingSchema = z.object({
   requestedSlot: objectId,
   source: z.enum(["phone", "whatsapp", "tiktok", "instagram", "facebook", "walk_in", "referral", "other"]),
   notes: z.string().trim().max(2000).optional(),
+  customerId: objectId.optional(),
+  registerNewPatient: z.boolean().optional(),
 });
 
 // PATCH /api/reception/bookings/:id/approve

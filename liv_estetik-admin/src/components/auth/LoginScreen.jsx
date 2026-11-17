@@ -86,7 +86,7 @@ export default function LoginScreen({ onLogin }) {
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute inset-y-0 right-3 flex items-center text-stone-500 hover:text-stone-700"
+                  className="absolute inset-y-0 right-1 flex w-11 items-center justify-center rounded-md text-stone-500 hover:text-stone-700"
                 >
                   {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
                 </button>
@@ -112,4 +112,3 @@ export default function LoginScreen({ onLogin }) {
     </main>
   );
 }
-

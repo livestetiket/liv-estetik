@@ -6,8 +6,9 @@ export default defineConfig({
     // Keep local dashboard requests on the local API, never the live site.
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
+        target: "https://liv-estetik-api.onrender.com",
         changeOrigin: true,
+        secure: true,
       },
     },
   },

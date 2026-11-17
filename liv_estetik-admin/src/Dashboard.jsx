@@ -4,7 +4,7 @@ import { getStoredSession, clearSession, fetchCurrentUser, setAuthToken } from "
 import LoginScreen from "./components/auth/LoginScreen";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import ActiveView from "./components/ActiveView";
-import { ROLE_NAV } from "./dashboardConfig";
+import { ROLE_NAV, buildRoleNavigation } from "./dashboardConfig";
 
 export default function Dashboard() {
   const initial = useMemo(() => {
@@ -18,7 +18,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(initial.user);
   const [activeView, setActiveView] = useState("overview");
   const [checking, setChecking] = useState(Boolean(initial.token));
-  const navItems = user?.role ? ROLE_NAV[user.role] || ROLE_NAV.reception : ROLE_NAV.reception;
+  const navItems = user?.role ? ROLE_NAV[user.role] || buildRoleNavigation(user.permissions) : ROLE_NAV.reception;
 
   useEffect(() => {
     let ignore = false;
@@ -86,7 +86,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout user={user} navItems={navItems} activeView={activeView} setActiveView={setActiveView} onLogout={handleLogout}>
-      <ActiveView view={activeView} user={user} role={user.role} setActiveView={setActiveView} />
+      <ActiveView view={activeView} user={user} role={user.role} permissions={user.permissions || []} setActiveView={setActiveView} />
     </DashboardLayout>
   );
 }

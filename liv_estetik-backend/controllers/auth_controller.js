@@ -4,6 +4,15 @@ const ApiError = require("../util/api_error");
 const asyncHandler = require("../util/async_handler");
 const { signAuthToken } = require("../util/tokens");
 const { logAction } = require("../service/audit_service");
+const Role = require("../models/role");
+const { BUILTIN_ROLES, DEFAULT_ROLE_PERMISSIONS } = require("../service/permissions");
+
+async function rolePresentation(roleKey) {
+  if (BUILTIN_ROLES.includes(roleKey)) return { roleName: roleKey, permissions: DEFAULT_ROLE_PERMISSIONS[roleKey] };
+  const role = await Role.findOne({ key: roleKey, active: true }).select("name permissions").lean();
+  if (!role) return { roleName: roleKey, permissions: [] };
+  return { roleName: role.name, permissions: role.permissions };
+}
 
 // POST /api/auth/login
 const login = asyncHandler(async (req, res) => {
@@ -23,9 +32,10 @@ const login = asyncHandler(async (req, res) => {
   await user.save();
 
   const token = signAuthToken(user);
+  const roleAccess = await rolePresentation(user.role);
 
   await logAction({
-    actor: { id: user._id.toString(), role: user.role },
+    actor: { id: user._id.toString(), name: user.name, role: user.role, requestId: req.requestId },
     action: "auth.login",
     entityType: "User",
     entityId: user._id,
@@ -38,6 +48,7 @@ const login = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      ...roleAccess,
     },
   });
 });
@@ -48,7 +59,7 @@ const me = asyncHandler(async (req, res) => {
   if (!user) {
     throw ApiError.notFound("User not found");
   }
-  res.json({ data: user });
+  res.json({ data: { ...user.toJSON(), ...await rolePresentation(user.role) } });
 });
 
 // POST /api/auth/change-email

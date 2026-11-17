@@ -9,7 +9,7 @@ const createUserSchema = z.object({
   name: z.string().trim().min(2),
   email: z.string().trim().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.enum(["reception", "admin"]),
+  role: z.string().trim().regex(/^[a-z0-9_]+$/),
   phone: z.string().trim().optional(),
   active: z.boolean().optional().default(true),
 });
@@ -18,7 +18,7 @@ const updateUserSchema = z.object({
   name: z.string().trim().min(2).optional(),
   email: z.string().trim().email().optional(),
   password: z.string().min(8).optional(),
-  role: z.enum(["reception", "admin"]).optional(),
+  role: z.string().trim().regex(/^[a-z0-9_]+$/).optional(),
   phone: z.string().trim().optional(),
   active: z.boolean().optional(),
 });

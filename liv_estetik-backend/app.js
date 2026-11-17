@@ -12,8 +12,18 @@ const publicRoutes = require("./routes/public_route");
 const receptionRoutes = require("./routes/reception_route");
 const adminRoutes = require("./routes/admin_route");
 const cronRoutes = require("./routes/cron_route");
+const patientRoutes = require("./routes/patient_route");
+const notificationRoutes = require("./routes/notification_route");
+const callRoutes = require("./routes/call_route");
 
 const app = express();
+
+app.use((req, res, next) => {
+  const supplied = String(req.get("x-request-id") || "").trim();
+  req.requestId = /^[A-Za-z0-9._:-]{1,120}$/.test(supplied) ? supplied : require("crypto").randomUUID();
+  res.setHeader("X-Request-Id", req.requestId);
+  next();
+});
 
 app.use(helmet());
 
@@ -32,6 +42,9 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/cron", cronRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/patients", patientRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/calls", callRoutes);
 app.use("/api", publicRoutes);
 app.use("/api/reception", receptionRoutes);
 app.use("/api/admin", adminRoutes);

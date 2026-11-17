@@ -50,14 +50,9 @@ export default function BookingSteps({
     const selectedServiceName = services.find((service) => String(service._id || service.id) === selectedService)?.name;
 
     const filteredSlots = useMemo(() => slots.filter((slot) => {
-        if (!availableSlot(slot) || serviceId(slot) !== selectedService) return false;
-        const date = new Date(slot.startsAt);
-        const day = date.getUTCDay();
-        const hour = date.getUTCHours();
-        const minute = date.getUTCMinutes();
-        if (day === 0) return false;
-        if (day === 6) return hour >= 9 && (hour < 12 || (hour === 12 && minute < 30));
-        return hour >= 9 && (hour < 17 || (hour === 17 && minute < 30));
+        // The API already applies the clinic's Addis Ababa operating hours.
+        // Comparing UTC hours here incorrectly hides valid morning slots (UTC+3).
+        return availableSlot(slot) && serviceId(slot) === selectedService;
     }), [slots, selectedService]);
 
     const slotGroups = useMemo(() => {

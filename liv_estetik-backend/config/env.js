@@ -11,6 +11,20 @@ function required(name, fallback) {
   return value;
 }
 
+const mongoUri = required("MONGO_URI", isProduction ? undefined : "mongodb://127.0.0.1:27017/liv-estetik");
+
+if (isProduction) {
+  let databaseName = "";
+  try {
+    databaseName = new URL(mongoUri).pathname.replace(/^\/+/, "");
+  } catch (_) {
+    // mongoose will report malformed connection strings with its normal connection error.
+  }
+  if (!databaseName) {
+    throw new Error("[env] MONGO_URI must include the production database name in its path; without it MongoDB may connect to the default 'test' database");
+  }
+}
+
 const jwtSecret = required("JWT_SECRET", isProduction ? undefined : "dev-secret-change-me");
 const adminEmail = required("ADMIN_EMAIL", isProduction ? undefined : "admin@livestetik.com");
 const adminPassword = required("ADMIN_PASSWORD", isProduction ? undefined : "Admin@123456");
@@ -27,7 +41,7 @@ const env = {
   port: Number(process.env.PORT) || 5000,
   nodeEnv,
 
-  mongoUri: required("MONGO_URI", "mongodb://127.0.0.1:27017/liv-estetik"),
+  mongoUri,
 
   jwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
@@ -56,6 +70,7 @@ const env = {
     adminPassword,
 
   emailProvider: process.env.EMAIL_PROVIDER || "console",
+  emailFrom: process.env.EMAIL_FROM || "",
   smtpHost: process.env.SMTP_HOST || "",
   smtpPort: Number(process.env.SMTP_PORT) || 587,
   smtpUser: process.env.SMTP_USER || "",

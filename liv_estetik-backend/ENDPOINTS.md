@@ -138,7 +138,7 @@ Response: Updated user data
 
 ## Reception routes (`/api/reception`)
 
-> Requires authenticated user with role `reception` or `admin`.
+> Requires an authenticated Reception/Admin user or custom role with the route permission. Call activity is on `/api/calls` and unavailable to Reception.
 
 ### GET /api/reception/dashboard
 - Description: Reception dashboard summary
@@ -398,11 +398,11 @@ Example:
 
 ### Testimonials
 
-#### GET /api/admin/testimonials
+#### GET /api/reception/testimonials
 - Description: List testimonials
 - Auth: required
 
-#### POST /api/admin/testimonials
+#### POST /api/reception/testimonials
 - Description: Create a testimonial
 - Auth: required
 - Body:
@@ -414,12 +414,12 @@ Example:
   - `active` (boolean, optional)
   - `sortOrder` (number, optional)
 
-#### PATCH /api/admin/testimonials/:id
+#### PATCH /api/reception/testimonials/:id
 - Description: Update a testimonial
 - Auth: required
 - Body: any testimonial fields from create schema
 
-#### DELETE /api/admin/testimonials/:id
+#### DELETE /api/reception/testimonials/:id
 - Description: Delete a testimonial
 - Auth: required
 
@@ -440,6 +440,53 @@ Example:
 - Auth: required
 
 ---
+
+## Added patient, call, notification, and role routes
+
+### Public clinic hours
+
+#### GET `/api/clinic-hours`
+- Auth: none
+- Returns the configured timezone, weekly operating windows, full closed dates, and one-off special hours/closures.
+
+### Patient registry (`/api/patients`)
+
+Requires `patients.view`, `patients.create`, `patients.edit`, and/or `prp.manage` as appropriate. Reception and Admin have patient access by default.
+
+- `GET /api/patients?q=&page=&limit=` — search by name, phone, email, or patient card number; paginated.
+- `GET /api/patients/lookup?phone=&email=` — find possible patient matches for booking entry.
+- `POST /api/patients` — register a patient; the backend assigns a sequential card number and rejects contact identity conflicts.
+- `GET /api/patients/:id` — patient profile and PRP course history.
+- `PATCH /api/patients/:id` — update permitted patient fields; changes are audit logged.
+- `POST /api/patients/:id/prp-courses` — create a six-session PRP course.
+- `PATCH /api/patients/:id/prp-courses/:courseId/sessions/:sessionNumber` — update the session treatment date and/or completion checkbox; changes are retained in course history.
+
+### Call activity (`/api/calls`)
+
+Admin and Call Center Agent only. Call Center Agents can list and update their assigned calls and create call records assigned to themselves. Admins can assign an active agent.
+
+- `GET /api/calls?from=&to=&followUp=true` — list activities; agent results are scoped to the current assignment.
+- `POST /api/calls` — log a manual call with patient/contact, purpose, outcome, follow-up, and status fields.
+- `PATCH /api/calls/:id` — update an activity; agents may update only their assigned activities.
+
+### Notifications (`/api/notifications`)
+
+Authenticated users can only see and change their own notifications.
+
+- `GET /api/notifications` — list recent notifications and unread count.
+- `PATCH /api/notifications/:id/read` — mark one notification read.
+- `PATCH /api/notifications/read-all` — mark the current user's notifications read.
+
+### Custom role management and reports
+
+- `GET /api/admin/roles` — list built-in/custom roles and available permission keys.
+- `POST /api/admin/roles` — create a database-backed role (Admin only).
+- `PATCH /api/admin/roles/:key` — edit permissions, name, description, or active state (Admin only).
+- `GET /api/admin/reports/preview` and `POST /api/admin/reports/generate` — permission controlled by `reports.view`.
+- `GET /api/admin/reports/export.csv` — export report data; requires `reports.export`.
+- `GET /api/admin/audit-logs/export.csv` — export the currently filtered audit-log rows; requires `reports.export`.
+
+The primary admin is identified by the `isPrimaryAdmin` field after running `npm run migrate:protect-primary-admin`; the account cannot be deleted, deactivated, or downgraded through the user-management API.
 
 ## Notes
 - Use the returned `token` from `POST /api/auth/login` as `Authorization: Bearer <token>`.

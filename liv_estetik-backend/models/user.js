@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ROLES = ["reception", "admin"];
+const { BUILTIN_ROLES } = require("../service/permissions");
 
 const userSchema = new mongoose.Schema(
   {
@@ -13,9 +13,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ROLES, required: true },
+    role: { type: String, required: true, trim: true, lowercase: true },
     phone: { type: String, trim: true },
     active: { type: Boolean, default: true },
+    isPrimaryAdmin: { type: Boolean, default: false },
     lastLoginAt: { type: Date },
   },
   { timestamps: true }
@@ -32,6 +33,6 @@ userSchema.set("toJSON", {
   },
 });
 
-userSchema.statics.ROLES = ROLES;
+userSchema.statics.ROLES = BUILTIN_ROLES;
 
 module.exports = mongoose.model("User", userSchema);

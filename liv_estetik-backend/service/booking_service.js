@@ -3,11 +3,13 @@ const Booking = require("../models/booking");
 const Service = require("../models/service");
 const TimeSlot = require("../models/timeslot");
 const BookingStatusHistory = require("../models/booking_status_history");
+const Customer = require("../models/customer");
 const ApiError = require("../util/api_error");
-const { findOrCreateCustomer } = require("./customer_service");
+const { findOrCreateCustomer, createPatientRecord } = require("./customer_service");
 const { reserveSlot, releaseSlot, assertSlotSelectable } = require("./slot_service");
 const { sendBookingEmail } = require("./email_service");
 const { logAction } = require("./audit_service");
+const { notifyRoles } = require("./notification_service");
 
 async function recordStatusChange({ bookingId, fromStatus, toStatus, changedBy, changedByRole, message }) {
   await BookingStatusHistory.create({
@@ -26,8 +28,8 @@ async function recordStatusChange({ bookingId, fromStatus, toStatus, changedBy, 
  * section 6.4 ("never trust only frontend disabled states").
  * Only one service per booking is allowed.
  */
-async function createBookingRequest(payload, { actor, source = "website" } = {}) {
-  const { fullName, age, sex, phone, address, email, service, requestedSlot, notes } = payload;
+async function createBookingRequest(payload, { actor, source = "website", requestId } = {}) {
+  const { fullName, age, sex, phone, address, email, service, requestedSlot, notes, customerId, registerNewPatient } = payload;
 
   const serviceDoc = await Service.findById(service);
   if (!serviceDoc) {
@@ -48,15 +50,15 @@ async function createBookingRequest(payload, { actor, source = "website" } = {})
   let booking;
 
   try {
-    const customer = await findOrCreateCustomer({
-      fullName,
-      email: email || undefined,
-      phone,
-      age,
-      sex,
-      address,
-      source: "booking",
-    });
+    let customer;
+    if (customerId) {
+      customer = await Customer.findById(customerId);
+      if (!customer) throw ApiError.badRequest("The selected patient record could not be found.");
+    } else if (registerNewPatient) {
+      customer = await createPatientRecord({ fullName, email, phone, age, sex, address, hasAccount: false, source: "manual" });
+    } else {
+      customer = await findOrCreateCustomer({ fullName, email: email || undefined, phone, age, sex, address, source: "booking" });
+    }
 
     const created = await Booking.create([
       {
@@ -90,7 +92,20 @@ async function createBookingRequest(payload, { actor, source = "website" } = {})
         message: actor ? "Booking created by staff" : "Booking request submitted through the website",
       },
     ]);
+    if (customer.$locals.createdForThisRequest) {
+      await notifyRoles({ eventKey: `patient.registered:${customer._id}`, eventType: "patient.registered", title: "New patient registered", message: `${customer.fullName} was registered.`, entityType: "Customer", entityId: customer._id });
+    }
+    await notifyRoles({ eventKey: `booking.created:${booking._id}`, eventType: "booking.created", title: "New booking request", message: `${booking.fullName} requested ${booking.serviceName || "an appointment"}.`, entityType: "Booking", entityId: booking._id });
+    await logAction({ actor: actor || { name: "Website visitor", role: "public", requestId }, action: "booking.created", entityType: "Booking", entityId: booking._id, metadata: { source, serviceName: booking.serviceName } });
   } catch (err) {
+    // A booking can be created before its status-history write fails. Roll it
+    // back as well as releasing its slot so staff and customer records agree.
+    if (booking?._id) {
+      await Promise.allSettled([
+        Booking.deleteOne({ _id: booking._id }),
+        BookingStatusHistory.deleteMany({ booking: booking._id }),
+      ]);
+    }
     await releaseSlot(requestedSlot).catch(() => {});
     throw err;
   }
@@ -111,20 +126,20 @@ async function getBookingOr404(id) {
  * marks it reserved/unavailable, records history, sends the approval email.
  */
 async function approveBooking({ bookingId, staffMessage, actor }) {
-  const booking = await getBookingOr404(bookingId);
+  let booking = await getBookingOr404(bookingId);
 
   if (!["pending", "reschedule_requested"].includes(booking.status)) {
     throw ApiError.badRequest(`Cannot approve a booking with status "${booking.status}"`);
   }
   const fromStatus = booking.status;
-  booking.status = "approved";
-  booking.approvedSlot = booking.requestedSlot;
-  booking.approvedStartsAt = booking.requestedStartsAt;
-  booking.approvedEndsAt = booking.requestedEndsAt;
-  booking.staffMessage = staffMessage;
-  booking.approvedBy = actor.id;
-  booking.decisionAt = new Date();
-  await booking.save();
+  const decisionAt = new Date();
+  booking = await Booking.findOneAndUpdate(
+    { _id: booking._id, status: fromStatus },
+    { $set: { status: "approved", approvedSlot: booking.requestedSlot, approvedStartsAt: booking.requestedStartsAt, approvedEndsAt: booking.requestedEndsAt, staffMessage, approvedBy: actor.id, decisionAt } },
+    { new: true, runValidators: true },
+  );
+  if (!booking) throw ApiError.conflict("This booking was updated by another staff member. Refresh and review its current status.");
+  await booking.populate("customer", "cardNumber");
 
   await recordStatusChange({
     bookingId: booking._id,
@@ -143,7 +158,9 @@ async function approveBooking({ bookingId, staffMessage, actor }) {
     metadata: { staffMessage },
   });
 
-  const emailRecord = booking.email ? await sendBookingEmail("booking_approved", booking) : { status: "skipped" };
+  await notifyRoles({ eventKey: `booking.approved:${booking._id}`, eventType: "booking.approved", title: "Booking approved", message: `${booking.fullName}'s appointment was approved.`, entityType: "Booking", entityId: booking._id });
+
+  const emailRecord = booking.email ? await sendBookingEmail("booking_approved", booking, actor) : { status: "skipped" };
 
   return { booking, emailRecord };
 }
@@ -153,6 +170,7 @@ async function approveBooking({ bookingId, staffMessage, actor }) {
  */
 async function rejectBooking({ bookingId, reason, actor }) {
   const booking = await getBookingOr404(bookingId);
+  await booking.populate("customer", "cardNumber");
 
   if (["completed", "cancelled", "rejected"].includes(booking.status)) {
     throw ApiError.badRequest(`Cannot reject a booking with status "${booking.status}"`);
@@ -187,7 +205,9 @@ async function rejectBooking({ bookingId, reason, actor }) {
     metadata: { reason },
   });
 
-  const emailRecord = booking.email ? await sendBookingEmail("booking_rejected", booking) : { status: "skipped" };
+  await notifyRoles({ eventKey: `booking.rejected:${booking._id}:${booking.updatedAt?.getTime() || Date.now()}`, eventType: "booking.modified", title: "Booking request declined", message: `${booking.fullName}'s appointment request was declined.`, entityType: "Booking", entityId: booking._id });
+
+  const emailRecord = booking.email ? await sendBookingEmail("booking_rejected", booking, actor) : { status: "skipped" };
 
   return { booking, emailRecord };
 }
@@ -198,6 +218,7 @@ async function rejectBooking({ bookingId, reason, actor }) {
  */
 async function rescheduleBooking({ bookingId, newSlotId, reason, actor }) {
   const booking = await getBookingOr404(bookingId);
+  await booking.populate("customer", "cardNumber");
 
   if (["completed", "cancelled", "rejected"].includes(booking.status)) {
     throw ApiError.badRequest(`Cannot reschedule a booking with status "${booking.status}"`);
@@ -249,7 +270,9 @@ async function rescheduleBooking({ bookingId, newSlotId, reason, actor }) {
     metadata: { newSlotId, reason },
   });
 
-  const emailRecord = booking.email ? await sendBookingEmail("booking_rescheduled", booking) : { status: "skipped" };
+  await notifyRoles({ eventKey: `booking.rescheduled:${booking._id}:${booking.updatedAt?.getTime() || Date.now()}`, eventType: "booking.modified", title: "Booking rescheduled", message: `${booking.fullName}'s appointment time was changed.`, entityType: "Booking", entityId: booking._id });
+
+  const emailRecord = booking.email ? await sendBookingEmail("booking_rescheduled", booking, actor) : { status: "skipped" };
 
   return { booking, emailRecord };
 }
@@ -285,9 +308,9 @@ async function completeBooking({ bookingId, actor }) {
 async function updateBookingStatus({ bookingId, status, actor }) {
   const booking = await getBookingOr404(bookingId);
   const allowed = {
-    approved: ["arrived", "in_progress", "completed", "no_show"],
-    rescheduled: ["arrived", "in_progress", "completed", "no_show"],
-    arrived: ["in_progress", "completed", "no_show"],
+    approved: ["arrived", "in_progress", "completed"],
+    rescheduled: ["arrived", "in_progress", "completed"],
+    arrived: ["in_progress", "completed"],
     in_progress: ["completed"],
   };
   if (!allowed[booking.status]?.includes(status)) {
@@ -331,6 +354,8 @@ async function cancelBooking({ bookingId, reason, actor }) {
     entityId: booking._id,
     metadata: { reason },
   });
+
+  await notifyRoles({ eventKey: `booking.cancelled:${booking._id}:${booking.updatedAt?.getTime() || Date.now()}`, eventType: "booking.cancelled", title: "Booking cancelled", message: `${booking.fullName}'s appointment was cancelled.`, entityType: "Booking", entityId: booking._id });
 
   return booking;
 }
